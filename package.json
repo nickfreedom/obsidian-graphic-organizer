@@ -1,0 +1,39 @@
+{
+  "name": "obsidian-graphic-organizer",
+  "version": "1.0.0",
+  "description": "A graphic organizer plugin for Obsidian that provides an interactive tree view of your vault's hierarchy",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "package": "pnpm run build && echo 'Plugin packaged in dist/ directory - copy contents to your Obsidian vault .obsidian/plugins/graphic-organizer/'",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "clean": "rm -rf node_modules pnpm-lock.yaml",
+    "fresh-install": "pnpm run clean && pnpm install"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "file-explorer",
+    "tree-view",
+    "graphic-organizer"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/svelte": "^5.0.2",
+    "@types/node": "^16.11.6",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.17.3",
+    "esbuild-svelte": "^0.8.0",
+    "obsidian": "latest",
+    "svelte": "^4.2.7",
+    "svelte-preprocess": "^5.1.0",
+    "tslib": "2.4.0",
+    "typescript": "4.7.4"
+  },
+  "dependencies": {
+    "konva": "^9.2.0",
+    "svelte-konva": "^0.3.1"
+  }
+}

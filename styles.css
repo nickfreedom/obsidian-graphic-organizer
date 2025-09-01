@@ -1,0 +1,52 @@
+/* Main plugin styles */
+.graphic-organizer-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
+/* Ensure the view takes full available space */
+.workspace-leaf-content[data-type="graphic-organizer-view"] {
+  padding: 0;
+}
+
+.workspace-leaf-content[data-type="graphic-organizer-view"] .view-content {
+  height: 100%;
+  padding: 0;
+}
+
+/* Context menu styles are in the component file */
+
+/* Modal styles are in the component files */
+
+/* Override default Konva canvas styles */
+.graphic-organizer-container canvas {
+  outline: none;
+  touch-action: none;
+}
+
+/* Utility classes */
+.mod-warning {
+  background: var(--background-modifier-error) !important;
+  color: var(--text-on-accent) !important;
+}
+
+.mod-cta {
+  background: var(--interactive-accent) !important;
+  color: var(--text-on-accent) !important;
+}
+
+/* Ensure proper z-index layering */
+.graphic-organizer-container .zoom-controls {
+  z-index: 1000;
+}
+
+.graphic-organizer-container .context-menu {
+  z-index: 10000;
+}
+
+.modal-backdrop {
+  z-index: 10000;
+}

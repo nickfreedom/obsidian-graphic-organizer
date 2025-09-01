@@ -1,0 +1,24 @@
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+main.js
+*.js.map
+lib/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Obsidian
+data.json
