@@ -115,6 +115,46 @@ This is a base (database) file. You can add entries and manage data here.
 		}
 	}
 
+	async revealInExplorer(itemPath: string): Promise<void> {
+		try {
+			const abstractFile = this.app.vault.getAbstractFileByPath(itemPath);
+			if (!abstractFile) {
+				new Notice('File not found');
+				return;
+			}
+
+			// Use Obsidian's file explorer to reveal the file
+			this.app.workspace.trigger('reveal-file', abstractFile);
+			new Notice(`Revealed: ${abstractFile.name}`);
+		} catch (error) {
+			new Notice(`Failed to reveal in explorer: ${error.message}`);
+			throw error;
+		}
+	}
+
+	async renameItem(itemPath: string): Promise<void> {
+		try {
+			const abstractFile = this.app.vault.getAbstractFileByPath(itemPath);
+			if (!abstractFile) {
+				new Notice('File not found');
+				return;
+			}
+
+			const currentName = abstractFile.name;
+			const newName = await this.promptForName('Rename Item', 'Enter new name:', currentName);
+			if (!newName || newName === currentName) return;
+
+			const parentPath = abstractFile.parent?.path || '';
+			const newPath = this.joinPath(parentPath, newName);
+
+			await this.app.vault.rename(abstractFile, newPath);
+			new Notice(`Renamed: ${currentName} → ${newName}`);
+		} catch (error) {
+			new Notice(`Failed to rename item: ${error.message}`);
+			throw error;
+		}
+	}
+
 	private joinPath(parentPath: string, childName: string): string {
 		if (!parentPath || parentPath === '/') {
 			return childName;

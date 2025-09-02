@@ -146,6 +146,39 @@
 		}
 	}
 
+	async function revealInExplorer() {
+		if (!node) return;
+		
+		try {
+			await fileOpsService.revealInExplorer(node.path);
+			closeMenu();
+		} catch (error) {
+			console.error('Failed to reveal in explorer:', error);
+		}
+	}
+
+	async function copyPath() {
+		if (!node) return;
+		
+		try {
+			await navigator.clipboard.writeText(node.path);
+			closeMenu();
+		} catch (error) {
+			console.error('Failed to copy path:', error);
+		}
+	}
+
+	async function renameItem() {
+		if (!node) return;
+		
+		try {
+			await fileOpsService.renameItem(node.path);
+			closeMenu();
+		} catch (error) {
+			console.error('Failed to rename item:', error);
+		}
+	}
+
 	// Get menu items based on node type - use explicit reactive statement
 	$: {
 		menuItems = getMenuItems(node);
@@ -172,8 +205,19 @@
 		} else {
 			// File node
 			return [
+				{ label: 'Reveal in explorer', action: revealInExplorer, icon: '👁️' },
+				{ label: 'Copy path', action: copyPath, icon: '📋' },
+				{ separator: true },
+				{ label: 'Rename', action: renameItem, icon: '✏️' },
 				{ label: 'Delete', action: deleteItem, icon: '🗑️', destructive: true }
 			];
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			dispatch('close');
 		}
 	}
 </script>
@@ -182,6 +226,9 @@
 	class="context-menu"
 	bind:this={contextMenuElement}
 	on:click|stopPropagation
+	on:keydown={handleKeydown}
+	role="menu"
+	tabindex="-1"
 >
 	{#each menuItems as item}
 		{#if item.separator}
