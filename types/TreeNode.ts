@@ -12,6 +12,7 @@ export interface TreeNode {
   fileType?: string;
   size?: number;
   hasWarning?: boolean; // for large folders
+  subtreeWidth?: number; // calculated width needed for this node and all its descendants
 }
 
 export interface TreeLayout {

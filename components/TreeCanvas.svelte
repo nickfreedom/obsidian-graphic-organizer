@@ -153,7 +153,7 @@
 						
 						lines.push({
 							points: [parentCenterX, parentBottomY, childCenterX, childTopY],
-							stroke: '#666',
+							stroke: '#888888',
 							strokeWidth: 2
 						});
 					}

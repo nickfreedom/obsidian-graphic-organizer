@@ -9,6 +9,7 @@ export class VaultHierarchyService {
 	private fileIconService: FileIconService;
 	private treeLayout: TreeLayout;
 	private listeners: Set<(layout: TreeLayout) => void> = new Set();
+	private rootNode: TreeNode | null = null;
 
 	constructor(app: App, plugin: GraphicOrganizerPlugin) {
 		this.app = app;
@@ -56,20 +57,20 @@ export class VaultHierarchyService {
 
 	public async buildInitialTree(): Promise<TreeLayout> {
 		const rootFolder = this.app.vault.getRoot();
-		const rootNode = this.createNodeFromFolder(rootFolder, null, 0);
+		this.rootNode = this.createNodeFromFolder(rootFolder, null, 0);
 		
 		// Only load immediate children initially (lazy loading)
-		await this.loadFolderChildren(rootNode, false);
+		await this.loadFolderChildren(this.rootNode, false);
 		
 		this.treeLayout.nodes.clear();
 		this.treeLayout.levels.clear();
 		this.treeLayout.maxDepth = 0;
 
-		this.addNodeToLayout(rootNode);
+		this.addNodeToLayout(this.rootNode);
 		this.calculatePositions();
 		
 		console.log('Graphic Organizer: Tree built with', this.treeLayout.nodes.size, 'nodes');
-		console.log('Root node:', rootNode);
+		console.log('Root node:', this.rootNode);
 		
 		this.notifyListeners();
 		
@@ -89,6 +90,7 @@ export class VaultHierarchyService {
 		}
 
 		node.isExpanded = true;
+		this.rebuildLayout();
 		this.calculatePositions();
 		this.notifyListeners();
 	}
@@ -98,6 +100,7 @@ export class VaultHierarchyService {
 		if (!node || node.type !== 'folder') return;
 
 		node.isExpanded = false;
+		this.rebuildLayout();
 		this.calculatePositions();
 		this.notifyListeners();
 	}
@@ -186,65 +189,394 @@ export class VaultHierarchyService {
 		}
 	}
 
+	private rebuildLayout(): void {
+		// Clear the current layout
+		this.treeLayout.nodes.clear();
+		
+		// Rebuild layout from root, respecting current expansion states
+		if (this.rootNode) {
+			this.addNodeToLayout(this.rootNode);
+		}
+	}
+
 	private calculatePositions(): void {
 		const rootNode = this.treeLayout.nodes.get('root') || this.treeLayout.nodes.values().next().value;
 		if (!rootNode) return;
 
-		// First pass: calculate tree dimensions and organize by levels
-		this.organizeNodesByLevels(rootNode, 0);
-		
-		// Second pass: assign positions using top-down hierarchy layout
-		this.assignHierarchicalPositions();
+		// Clear existing levels and reset max depth before recalculating
+		this.treeLayout.levels.clear();
+		this.treeLayout.maxDepth = 0;
+
+		// Use tree-based positioning instead of level-based
+		this.assignTreePositions();
 	}
 
-	private organizeNodesByLevels(node: TreeNode, depth: number): void {
-		// Ensure the level exists in our map
-		if (!this.treeLayout.levels.has(depth)) {
-			this.treeLayout.levels.set(depth, []);
+	private assignTreePositions(): void {
+		const rootNode = this.treeLayout.nodes.get('root') || this.treeLayout.nodes.values().next().value;
+		if (!rootNode) return;
+
+		const spacing = this.plugin.settings.nodeSpacing;
+		const nodeWidth = 120;
+		const nodeHeight = 40;
+		const minNodeSpacing = 10; // Minimum buffer between nodes within same parent
+		const subtreeSpacing = 40; // Extra space between different parent subtrees
+
+		// New approach: Center-outward positioning
+		this.assignCenterOutwardPositions(rootNode, nodeWidth, nodeHeight + spacing.vertical, minNodeSpacing, subtreeSpacing);
+		
+		// Debug: Log final positions for Test Folder 2 and Canvas 2.canvas
+		this.debugFinalPositions();
+	}
+
+
+
+	private calculateSimpleSubtreeWidths(node: TreeNode, nodeWidth: number, minSpacing: number): number {
+		if (!node.children || !node.isExpanded || node.children.length === 0) {
+			// Leaf node or collapsed folder
+			node.subtreeWidth = nodeWidth;
+			return nodeWidth;
 		}
-		
-		// Add node to its level (if not already there)
-		const level = this.treeLayout.levels.get(depth)!;
-		if (!level.includes(node)) {
-			level.push(node);
+
+		// Calculate width of all visible children with normal spacing
+		let totalChildWidth = 0;
+		for (let i = 0; i < node.children.length; i++) {
+			const child = node.children[i];
+			
+			if (i > 0) {
+				totalChildWidth += minSpacing; // Normal spacing between children
+			}
+			totalChildWidth += this.calculateSimpleSubtreeWidths(child, nodeWidth, minSpacing);
 		}
+
+		// The subtree width is the maximum of:
+		// 1. The width needed for all children
+		// 2. The width of the node itself
+		node.subtreeWidth = Math.max(totalChildWidth, nodeWidth);
+		return node.subtreeWidth;
+	}
+
+	private assignHierarchicalPositions(node: TreeNode, centerX: number, y: number, nodeWidth: number, levelHeight: number, minSpacing: number, subtreeSpacing: number): void {
+		// Position this node at the center of its allocated space
+		node.x = centerX - nodeWidth / 2;
+		node.y = y;
+
+		// If this node has expanded children, position them centered under this node
+		if (node.children && node.isExpanded && node.children.length > 0) {
+			const childY = y + levelHeight;
+			
+			// Use the node's actual center position (which is node.x + nodeWidth/2)
+			const actualParentCenterX = node.x! + nodeWidth / 2;
+			
+			// Calculate positions for children (returns left edge positions, not centers)
+			const childPositions = this.calculateChildPositions(node.children, actualParentCenterX, nodeWidth, minSpacing, subtreeSpacing);
+			
+			// Position each child and recurse
+			for (let i = 0; i < node.children.length; i++) {
+				const child = node.children[i];
+				const childX = childPositions[i];
+				const childCenterX = childX + nodeWidth / 2;
+				
+				// Recursively position the child and its descendants
+				// Pass the center position - the recursive call will calculate x = centerX - nodeWidth/2
+				this.assignHierarchicalPositions(child, childCenterX, childY, nodeWidth, levelHeight, minSpacing, subtreeSpacing);
+			}
+		}
+	}
+
+	private calculateChildPositions(children: TreeNode[], parentCenterX: number, nodeWidth: number, minSpacing: number, subtreeSpacing: number): number[] {
+		if (children.length === 0) return [];
 		
-		// Update max depth
-		this.treeLayout.maxDepth = Math.max(this.treeLayout.maxDepth, depth);
+		// Special case: single child should be centered directly under parent
+		if (children.length === 1) {
+			const childX = parentCenterX - nodeWidth / 2;
+			return [childX];
+		}
+
+		// Multiple children: calculate spacing and center the group under parent
+		let totalWidth = 0;
+		for (let i = 0; i < children.length; i++) {
+			const child = children[i];
+			if (i > 0) {
+				totalWidth += minSpacing;
+			}
+			totalWidth += child.subtreeWidth || nodeWidth;
+		}
+
+		// Position children centered under parent
+		const positions: number[] = [];
+		let currentX = parentCenterX - totalWidth / 2;
 		
-		// Process children if expanded
+		for (const child of children) {
+			const childSubtreeWidth = child.subtreeWidth || nodeWidth;
+			const childCenterX = currentX + childSubtreeWidth / 2;
+			const childX = childCenterX - nodeWidth / 2;
+			positions.push(childX);
+			currentX += childSubtreeWidth + minSpacing;
+		}
+
+		return positions;
+	}
+
+	private applySmartSpacingAdjustments(rootNode: TreeNode, extraSpacing: number): void {
+		// Collect all nodes by level
+		const levels: TreeNode[][] = [];
+		this.collectNodesByLevel(rootNode, 0, levels);
+
+		// Apply smart spacing adjustments level by level, starting from the deepest level
+		// This ensures parent adjustments account for all descendant adjustments
+		for (let levelIndex = levels.length - 1; levelIndex >= 0; levelIndex--) {
+			const nodesAtLevel = levels[levelIndex];
+			
+			// Always adjust parent centering for levels with children, even if spacing isn't adjusted
+			if (levelIndex > 0) {
+				this.adjustParentCentering(levels[levelIndex - 1]);
+			}
+			
+			if (nodesAtLevel.length <= 1) {
+				continue;
+			}
+
+			this.adjustSpacingForLevel(nodesAtLevel, extraSpacing);
+		}
+	}
+
+	private collectNodesByLevel(node: TreeNode, level: number, levels: TreeNode[][]): void {
+		if (!levels[level]) {
+			levels[level] = [];
+		}
+		levels[level].push(node);
+
 		if (node.children && node.isExpanded) {
 			for (const child of node.children) {
-				this.organizeNodesByLevels(child, depth + 1);
+				this.collectNodesByLevel(child, level + 1, levels);
 			}
 		}
 	}
 
-	private assignHierarchicalPositions(): void {
-		const spacing = this.plugin.settings.nodeSpacing;
-		const nodeWidth = 120; // Approximate node width
-		const nodeHeight = 40; // Approximate node height
-		
-		// Process each level
-		for (let depth = 0; depth <= this.treeLayout.maxDepth; depth++) {
-			const nodesAtLevel = this.treeLayout.levels.get(depth) || [];
-			const levelY = depth * (nodeHeight + spacing.vertical);
-			
-			if (nodesAtLevel.length === 0) continue;
-			
-			// Calculate total width needed for this level
-			const totalWidth = nodesAtLevel.length * nodeWidth + (nodesAtLevel.length - 1) * spacing.horizontal;
-			
-			// Center the level horizontally
-			let startX = -totalWidth / 2;
-			
-			// Position each node in this level
-			for (let i = 0; i < nodesAtLevel.length; i++) {
-				const node = nodesAtLevel[i];
-				node.x = startX + i * (nodeWidth + spacing.horizontal);
-				node.y = levelY;
+	private adjustSpacingForLevel(nodes: TreeNode[], extraSpacing: number): void {
+		// Calculate how much extra space to add between nodes from different parents
+		let totalAdjustment = 0;
+		const adjustments: number[] = [];
+
+		for (let i = 0; i < nodes.length; i++) {
+			if (i === 0) {
+				adjustments.push(0);
+			} else {
+				const currentNode = nodes[i];
+				const previousNode = nodes[i - 1];
+				
+				// Add extra spacing if nodes have different parents
+				if (currentNode.parent !== previousNode.parent) {
+					adjustments.push(extraSpacing);
+					totalAdjustment += extraSpacing;
+				} else {
+					adjustments.push(0);
+				}
 			}
 		}
+
+		// Apply adjustments by shifting nodes to the right
+		let cumulativeAdjustment = 0;
+		for (let i = 0; i < nodes.length; i++) {
+			cumulativeAdjustment += adjustments[i];
+			if (cumulativeAdjustment > 0) {
+				const adjustment = cumulativeAdjustment;
+				nodes[i].x! += adjustment;
+				
+				// Recursively adjust all descendants of this node
+				this.adjustDescendantsPosition(nodes[i], adjustment);
+			}
+		}
+	}
+	
+	private adjustDescendantsPosition(node: TreeNode, adjustment: number): void {
+		if (!node.children || !node.isExpanded) return;
+		
+		for (const child of node.children) {
+			// Only adjust if the child is currently visible in the layout
+			if (child.x !== undefined) {
+				child.x += adjustment;
+				// Recursively adjust the child's descendants
+				this.adjustDescendantsPosition(child, adjustment);
+			}
+		}
+	}
+
+	private adjustParentCentering(parents: TreeNode[]): void {
+		// For each parent, recalculate its position to center it above its children
+		for (const parent of parents) {
+			if (!parent.children || !parent.isExpanded || parent.children.length === 0) {
+				continue;
+			}
+
+			// Calculate the center point of all children based on their actual center positions
+			const nodeWidth = 120;
+			const childCenters = parent.children
+				.filter(child => child.x !== undefined)
+				.map(child => child.x! + nodeWidth / 2); // Get the center of each child node
+
+			if (childCenters.length === 0) {
+				continue;
+			}
+
+			// Calculate the leftmost and rightmost edges of the children group
+			const leftmostCenter = Math.min(...childCenters);
+			const rightmostCenter = Math.max(...childCenters);
+			
+			// The center of the children group is the midpoint between the leftmost and rightmost child centers
+			const childrenGroupCenter = (leftmostCenter + rightmostCenter) / 2;
+			
+			// Position parent so its center aligns with the children group center
+			const newParentX = childrenGroupCenter - nodeWidth / 2;
+			
+			// Only update if there's a meaningful change (avoid floating point precision issues)
+			if (Math.abs((parent.x || 0) - newParentX) > 0.1) {
+				parent.x = newParentX;
+			}
+		}
+	}
+
+	private assignCenterOutwardPositions(rootNode: TreeNode, nodeWidth: number, levelHeight: number, minSpacing: number, subtreeSpacing: number): void {
+		// Step 1: Calculate subtree widths with smart spacing
+		this.calculateSmartSubtreeWidths(rootNode, nodeWidth, minSpacing, subtreeSpacing);
+		
+		// Step 2: Position root at center (0, 0)
+		const rootCenterX = 0;
+		const rootY = 0;
+		
+		// Step 3: Recursively position all nodes with center-outward approach
+		this.positionNodeCenterOutward(rootNode, rootCenterX, rootY, nodeWidth, levelHeight);
+	}
+	
+	private calculateSmartSubtreeWidths(node: TreeNode, nodeWidth: number, minSpacing: number, subtreeSpacing: number): number {
+		if (!node.children || !node.isExpanded || node.children.length === 0) {
+			node.subtreeWidth = nodeWidth;
+			return nodeWidth;
+		}
+
+		// Calculate total width of all child subtrees with smart spacing
+		let totalChildWidth = 0;
+		
+		for (let i = 0; i < node.children.length; i++) {
+			const child = node.children[i];
+			const childWidth = this.calculateSmartSubtreeWidths(child, nodeWidth, minSpacing, subtreeSpacing);
+			
+			if (i > 0) {
+				const currentChild = node.children[i];
+				const previousChild = node.children[i - 1];
+				
+				// Add smart spacing between children from different parent lineages
+				if (this.hasChildrenFromDifferentParents(currentChild, previousChild)) {
+					totalChildWidth += subtreeSpacing;
+				} else {
+					totalChildWidth += minSpacing;
+				}
+			}
+			
+			totalChildWidth += childWidth;
+		}
+
+		// The subtree width is the maximum of:
+		// 1. The total width of children
+		// 2. The width of the node itself
+		node.subtreeWidth = Math.max(totalChildWidth, nodeWidth);
+		return node.subtreeWidth;
+	}
+	
+	private positionNodeCenterOutward(node: TreeNode, centerX: number, y: number, nodeWidth: number, levelHeight: number): void {
+		// Position this node centered at the given coordinates
+		node.x = centerX - nodeWidth / 2;
+		node.y = y;
+
+		// If this node has expanded children, position them centered under this node
+		if (node.children && node.isExpanded && node.children.length > 0) {
+			const childY = y + levelHeight;
+			
+			console.log(`Positioning children of ${node.name}: ${node.children.map(c => c.name).join(', ')}`);
+			
+			// Calculate spacing with smart spacing between different parent groups
+			const minSpacing = 10;
+			const subtreeSpacing = 40;
+			const childWidths = node.children.map(child => child.subtreeWidth || nodeWidth);
+			
+			// Calculate total width including smart spacing
+			let totalWidth = childWidths.reduce((sum, width) => sum + width, 0);
+			for (let i = 1; i < node.children.length; i++) {
+				const currentChild = node.children[i];
+				const previousChild = node.children[i - 1];
+				
+				// Add extra spacing between children from different parent lineages
+				if (this.hasChildrenFromDifferentParents(currentChild, previousChild)) {
+					console.log(`Adding extra spacing between ${previousChild.name} and ${currentChild.name} (different parents: ${previousChild.parent?.name} vs ${currentChild.parent?.name})`);
+					totalWidth += subtreeSpacing;
+				} else {
+					totalWidth += minSpacing;
+				}
+			}
+			
+			// Position children centered under parent
+			let currentX = centerX - totalWidth / 2;
+			
+			for (let i = 0; i < node.children.length; i++) {
+				const child = node.children[i];
+				const childWidth = childWidths[i];
+				const childCenterX = currentX + childWidth / 2;
+				
+				// Recursively position the child and its descendants
+				this.positionNodeCenterOutward(child, childCenterX, childY, nodeWidth, levelHeight);
+				
+				currentX += childWidth;
+				
+				// Add spacing for next iteration
+				if (i < node.children.length - 1) {
+					const nextChild = node.children[i + 1];
+					if (this.hasChildrenFromDifferentParents(nextChild, child)) {
+						currentX += subtreeSpacing;
+					} else {
+						currentX += minSpacing;
+					}
+				}
+			}
+		}
+	}
+	
+	private hasChildrenFromDifferentParents(child1: TreeNode, child2: TreeNode): boolean {
+		// Only apply extra spacing if these nodes are at level 1 (children of root) 
+		// and both have expanded children (creating visual separation between folder hierarchies)
+		const isLevel1 = child1.parent?.name === 'Vault Root' && child2.parent?.name === 'Vault Root';
+		
+		if (!isLevel1) {
+			// For nodes not at level 1, use normal tight spacing
+			return false;
+		}
+		
+		// Apply extra spacing only when BOTH level 1 folders have expanded children
+		// This creates separation between different folder hierarchies that are both active
+		const child1HasExpandedChildren = child1.children && child1.isExpanded && child1.children.length > 0;
+		const child2HasExpandedChildren = child2.children && child2.isExpanded && child2.children.length > 0;
+		
+		return child1HasExpandedChildren && child2HasExpandedChildren;
+	}
+
+	private debugFinalPositions(): void {
+		const testFolder2 = this.findNodeByName('Test Folder 2');
+		const canvas2 = this.findNodeByName('Canvas 2.canvas');
+		
+		if (testFolder2) {
+			console.log(`FINAL: Test Folder 2 at x=${testFolder2.x}, y=${testFolder2.y}`);
+		}
+		if (canvas2) {
+			console.log(`FINAL: Canvas 2.canvas at x=${canvas2.x}, y=${canvas2.y}`);
+		}
+	}
+	
+	private findNodeByName(name: string): TreeNode | null {
+		for (const node of this.treeLayout.nodes.values()) {
+			if (node.name === name) {
+				return node;
+			}
+		}
+		return null;
 	}
 
 	public refreshTree(): void {
@@ -257,6 +589,8 @@ export class VaultHierarchyService {
 		return this.treeLayout;
 	}
 
+
+
 	public destroy(): void {
 		// Clean up listeners
 		this.app.vault.off('create', this.onFileCreate.bind(this));
@@ -265,3 +599,5 @@ export class VaultHierarchyService {
 		this.listeners.clear();
 	}
 }
+
+
