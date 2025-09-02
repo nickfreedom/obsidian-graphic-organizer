@@ -200,6 +200,7 @@
 				{ label: 'New canvas', action: createNewCanvas, icon: '🎨' },
 				{ label: 'New base', action: createNewBase, icon: '🗃️' },
 				{ separator: true },
+				{ label: 'Rename', action: renameItem, icon: '✏️' },
 				{ label: 'Delete', action: deleteItem, icon: '🗑️', destructive: true }
 			];
 		} else {
