@@ -63,8 +63,8 @@ A visual, interactive tree view plugin for Obsidian that displays your vault's f
 - **Open File**: Left-click any file to open it in a new tab
 - **Expand/Collapse Folder**: Click on folders to toggle their state
 - **Right-Click Menu**:
-  - **Folders**: New note, New folder, New canvas, New base, Delete
-  - **Files**: Delete
+  - **Folders**: New note, New folder, New canvas, New base, Rename, Delete
+  - **Files**: Reveal in explorer, Copy path, Rename, Delete
 
 ### Drag and Drop
 1. **Start Drag**: Click and drag any file or folder
@@ -125,19 +125,33 @@ pnpm run build
 
 ### Project Structure
 ```
-├── main.ts                     # Main plugin class
-├── view.ts                     # Custom ItemView
-├── components/                 # Svelte components
-│   ├── TreeCanvas.svelte      # Main canvas component
-│   ├── Node.svelte            # Individual node component
-│   ├── ContextMenu.svelte     # Right-click menu
-│   └── ZoomControls.svelte    # Zoom controls
-├── services/                   # Core services
-│   ├── VaultHierarchyService.ts
-│   ├── DragDropService.ts
-│   ├── FileIconService.ts
-│   └── FileOperationsService.ts
-└── types/                      # TypeScript definitions
+├── main.ts                          # Main plugin class
+├── main.js                          # Compiled main file
+├── view.ts                          # Custom ItemView
+├── manifest.json                    # Plugin manifest
+├── settings.ts                      # Plugin settings
+├── components/                      # Svelte components
+│   ├── TreeCanvas.svelte           # Main canvas component
+│   ├── Node.svelte                 # Individual node component
+│   ├── ContextMenu.svelte          # Right-click menu
+│   ├── ZoomControls.svelte         # Zoom controls
+│   └── LargeFolderWarningModal.svelte
+├── services/                        # Core services
+│   ├── VaultHierarchyService.ts    # Vault structure management
+│   ├── DragDropService.ts          # Drag and drop functionality
+│   ├── FileIconService.ts          # File type icons
+│   ├── FileOperationsService.ts    # File operations
+│   ├── CoordinateService.ts        # Node positioning
+│   ├── AccessibleColorService.ts   # Color management
+│   └── SvgIconService.ts           # SVG icon utilities
+├── types/                           # TypeScript definitions
+│   ├── TreeNode.ts                 # Tree node types
+│   ├── FileTypes.ts                # File type definitions
+│   └── PluginSettings.ts           # Settings types
+├── styles.css                       # Plugin styles
+├── esbuild.config.mjs              # Build configuration
+├── tsconfig.json                    # TypeScript config
+└── version-bump.mjs                 # Version management
 ```
 
 ## Contributing
@@ -154,10 +168,10 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- **Issues**: [GitHub Issues](link-to-issues)
-- **Discussions**: [GitHub Discussions](link-to-discussions)
-- **Documentation**: [Wiki](link-to-wiki)
+- **Issues**: [GitHub Issues](https://github.com/your-username/obsidian-graphic-organizer/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/obsidian-graphic-organizer/discussions)
+- **Documentation**: [Wiki](https://github.com/your-username/obsidian-graphic-organizer/wiki)
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+See [GitHub Releases](https://github.com/your-username/obsidian-graphic-organizer/releases) for version history and updates.
