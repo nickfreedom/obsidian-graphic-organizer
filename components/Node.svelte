@@ -44,15 +44,25 @@
 	$: iconData = isFolder 
 		? SvgIconService.getFolderIconData(node.isExpanded || false)
 		: SvgIconService.getIconData(fileIconService.getFileType(node.fileType || ''));
-	$: color = isFolder 
-		? fileIconService.getFolderColor()
-		: fileIconService.getFileColor(node.fileType || '');
+	
+	// Simplified color logic - just folder vs file
+	$: colorType = isFolder ? 'folder' : 'file';
+	$: color = getCSSVariable(`--node-color-${colorType}`) || getDefaultColor(isFolder);
+	
+	// Use Obsidian's text color for all text elements - automatically theme-aware
+	$: unifiedTextColor = getCSSVariable('--text-normal') || '#ffffff';
+	
+	// Fallback colors if CSS variables don't work
+	function getDefaultColor(isFolder: boolean): string {
+		return isFolder ? '#d97706' : '#1e40af'; // Amber for folders, blue for files
+	}
+	
 	// Get CSS variables for theme-aware colors
 	function getCSSVariable(varName: string): string {
 		return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 	}
-
-	$: textColor = getCSSVariable('--text-normal') || '#ffffff';
+	
+	// Use theme-consistent colors for all elements
 	$: accentColor = getCSSVariable('--interactive-accent') || '#00ff00';
 	$: accentHover = getCSSVariable('--interactive-accent-hover') || '#004400';
 	$: shadowNormal = getCSSVariable('--shadow-color') || 'rgba(0, 0, 0, 0.3)';
@@ -269,7 +279,7 @@
 			y: nodeHeight / 2,
 			radius: iconSize / 2 + 2,
 			fill: color,
-			stroke: textColor,
+			stroke: unifiedTextColor,
 			strokeWidth: 0.5,
 			opacity: 0.8
 		}}
@@ -281,7 +291,7 @@
 			x: padding + iconSize / 2 - 6, // Center the 12px icon in the 16px space
 			y: nodeHeight / 2 - 6,
 			data: iconData.path,
-			fill: '#ffffff',
+			fill: unifiedTextColor,
 			scaleX: 0.5, // Scale down from 24x24 to 12x12
 			scaleY: 0.5
 		}}
@@ -295,7 +305,7 @@
 			width: nodeWidth - (padding * 3 + iconSize),
 			text: displayText,
 			fontSize: 12,
-			fill: textColor,
+			fill: unifiedTextColor,
 			fontFamily: 'var(--font-interface)',
 			align: 'left',
 			verticalAlign: 'middle'
@@ -325,7 +335,7 @@
 				data: node.isExpanded 
 					? 'M19 13H5v-2h14v2z' // Minus icon
 					: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', // Plus icon
-				fill: textColor,
+				fill: unifiedTextColor,
 				scaleX: 0.33,
 				scaleY: 0.33
 			}}

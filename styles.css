@@ -1,3 +1,16 @@
+/* Simplified color variables - just folders and files */
+:root {
+  /* Dark theme colors (for white text) */
+  --node-color-folder: #d97706;   /* Amber for folders */
+  --node-color-file: #1e40af;     /* Blue for files */
+}
+
+.theme-light {
+  /* Light theme colors (for black text) */
+  --node-color-folder: #fde047;   /* Light yellow for folders */
+  --node-color-file: #93c5fd;     /* Light blue for files */
+}
+
 /* Main plugin styles */
 .graphic-organizer-container {
   width: 100%;
