@@ -110,6 +110,9 @@
 		console.log('Graphic Organizer: Layout changed with', newLayout.nodes.size, 'nodes');
 		treeLayout = newLayout;
 		updateVisibleNodes();
+		
+		// Center the viewport on the root node after initial build
+		centerViewportOnRoot();
 	}
 
 	function updateVisibleNodes() {
@@ -361,8 +364,40 @@
 
 	function handleZoomReset() {
 		scale = 1;
-		stageX = 0;
-		stageY = 0;
+		// Reset to centered position instead of (0,0)
+		centerViewportOnRoot();
+	}
+
+	function centerViewportOnRoot() {
+		// Find the root node
+		const rootNode = treeLayout.nodes.get('root') || treeLayout.nodes.values().next().value;
+		if (!rootNode || rootNode.x === undefined || rootNode.y === undefined) {
+			return;
+		}
+
+		const nodeWidth = 120;
+		const topPadding = 50; // Space from top of viewport to root node
+
+		// Calculate root node center position in stage coordinates
+		const rootCenterX = rootNode.x + nodeWidth / 2;
+		const rootTopY = rootNode.y;
+
+		// Calculate desired viewport center to position root node correctly
+		// Root should be horizontally centered and vertically top-aligned with padding
+		const viewportCenterX = stageWidth / 2;
+		const viewportTopY = topPadding;
+
+		// Calculate stage offset needed to achieve this positioning
+		// stageX/Y represent the offset of the stage coordinate system relative to the viewport
+		stageX = viewportCenterX - rootCenterX * scale;
+		stageY = viewportTopY - rootTopY * scale;
+
+		console.log('Graphic Organizer: Centered viewport on root node', {
+			rootPos: { x: rootNode.x, y: rootNode.y },
+			rootCenter: { x: rootCenterX, y: rootTopY },
+			viewport: { width: stageWidth, height: stageHeight },
+			transform: { x: stageX, y: stageY, scale }
+		});
 	}
 
 	function convertAbsoluteToStageCoordinates(x: number, y: number) {
