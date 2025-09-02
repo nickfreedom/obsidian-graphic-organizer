@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   minZoom: 0.1,
   maxZoom: 5.0,
   nodeSpacing: {
-    horizontal: 150,
+    horizontal: 180, // Increased from 150 to accommodate 150px wide nodes
     vertical: 80
   }
 };

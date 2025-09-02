@@ -152,7 +152,7 @@
 	
 	function getConnectionLines(nodes: TreeNode[]) {
 		const lines = [];
-		const nodeWidth = 120;
+		const nodeWidth = 150; // Increased by 25% from 120px
 		const nodeHeight = 40;
 		
 		// Get theme-aware stroke color
@@ -406,7 +406,7 @@
 			return;
 		}
 
-		const nodeWidth = 120;
+		const nodeWidth = 150; // Increased by 25% from 120px
 		const topPadding = 50; // Space from top of viewport to root node
 
 		// Calculate root node center position in stage coordinates

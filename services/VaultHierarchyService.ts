@@ -243,7 +243,7 @@ export class VaultHierarchyService {
 		if (!rootNode) return;
 
 		const spacing = this.plugin.settings.nodeSpacing;
-		const nodeWidth = 120;
+		const nodeWidth = 150; // Increased by 25% from 120px
 		const nodeHeight = 40;
 		const minNodeSpacing = 10; // Minimum buffer between nodes within same parent
 		const subtreeSpacing = 40; // Extra space between different parent subtrees
@@ -437,7 +437,7 @@ export class VaultHierarchyService {
 			}
 
 			// Calculate the center point of all children based on their actual center positions
-			const nodeWidth = 120;
+			const nodeWidth = 150; // Increased by 25% from 120px
 			const childCenters = parent.children
 				.filter(child => child.x !== undefined)
 				.map(child => child.x! + nodeWidth / 2); // Get the center of each child node

@@ -30,7 +30,7 @@
 	// For now, we'll handle coordinates directly but use the service approach
 
 	// Node dimensions
-	const nodeWidth = 120;
+	const nodeWidth = 150; // Increased by 25% from 120px
 	const nodeHeight = 40;
 	const iconSize = 16;
 	const padding = 8;
@@ -38,6 +38,11 @@
 	// Drag state tracking
 	let wasDragging = false;
 	let wasRightClicking = false;
+	
+	// Tooltip state
+	let showTooltip = false;
+	let tooltipX = 0;
+	let tooltipY = 0;
 
 	// Calculate node appearance
 	$: isFolder = node.type === 'folder';
@@ -238,12 +243,34 @@
 	}
 
 	// Generate truncated text for display
-	function getTruncatedText(text: string, maxLength: number = 15): string {
+	function getTruncatedText(text: string, maxLength: number = 20): string { // Increased from 15 to 20 characters
 		if (text.length <= maxLength) return text;
 		return text.substring(0, maxLength - 3) + '...';
 	}
 
 	$: displayText = getTruncatedText(node.name);
+	$: shouldShowTooltip = node.name.length > 20; // Only show tooltip if text is truncated
+	
+	function handleMouseEnter(e: any) {
+		if (!shouldShowTooltip) return;
+		
+		// Get the stage to calculate tooltip position
+		const konvaTarget = e.detail?.target || e.detail?.currentTarget;
+		const stage = konvaTarget?.getStage?.();
+		const stageContainer = stage?.container?.();
+		
+		if (stageContainer) {
+			const containerRect = stageContainer.getBoundingClientRect();
+			// Position tooltip above the node
+			tooltipX = containerRect.left + (node.x || 0) + nodeWidth / 2;
+			tooltipY = containerRect.top + (node.y || 0) - 10;
+			showTooltip = true;
+		}
+	}
+	
+	function handleMouseLeave() {
+		showTooltip = false;
+	}
 </script>
 
 	<Group
@@ -258,6 +285,8 @@
 	on:dragstart={handleDragStart}
 	on:dragmove={handleDragMove}
 	on:dragend={handleDragEnd}
+	on:mouseenter={handleMouseEnter}
+	on:mouseleave={handleMouseLeave}
 >
 	<!-- Main node rectangle -->
 	<Rect
@@ -342,3 +371,32 @@
 		/>
 	{/if}
 </Group>
+
+<!-- Tooltip for full filename -->
+{#if showTooltip && shouldShowTooltip}
+	<div 
+		class="node-tooltip"
+		style="left: {tooltipX}px; top: {tooltipY}px;"
+	>
+		{node.name}
+	</div>
+{/if}
+
+<style>
+	.node-tooltip {
+		position: fixed;
+		background: var(--background-primary);
+		color: var(--text-normal);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		padding: 4px 8px;
+		font-size: 12px;
+		font-family: var(--font-interface);
+		white-space: nowrap;
+		z-index: 10001;
+		pointer-events: none;
+		box-shadow: var(--shadow-s);
+		transform: translateX(-50%); /* Center horizontally */
+		max-width: 300px;
+	}
+</style>
