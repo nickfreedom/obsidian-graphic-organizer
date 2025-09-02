@@ -136,15 +136,17 @@
 		visibleNodes = visibleNodes;
 	}
 
-	function getConnectionLines() {
+	$: connectionLines = getConnectionLines(visibleNodes);
+	
+	function getConnectionLines(nodes: TreeNode[]) {
 		const lines = [];
 		const nodeWidth = 120;
 		const nodeHeight = 40;
 		
-		for (const node of visibleNodes) {
+		for (const node of nodes) {
 			if (node.children && node.isExpanded) {
 				for (const child of node.children) {
-					if (visibleNodes.includes(child)) {
+					if (nodes.includes(child)) {
 						// Calculate connection points
 						const parentCenterX = node.x + nodeWidth / 2;
 						const parentBottomY = node.y + nodeHeight;
@@ -153,7 +155,7 @@
 						
 						lines.push({
 							points: [parentCenterX, parentBottomY, childCenterX, childTopY],
-							stroke: '#888888',
+							stroke: '#ffffff',
 							strokeWidth: 2
 						});
 					}
@@ -182,18 +184,18 @@
 		}
 	}
 
-	function toggleFolder(node: TreeNode) {
+	async function toggleFolder(node: TreeNode) {
 		if (node.isExpanded) {
-			hierarchyService.collapseFolder(node.id);
+			await hierarchyService.collapseFolder(node.id);
 		} else {
-			hierarchyService.expandFolder(node.id);
+			await hierarchyService.expandFolder(node.id);
 		}
 	}
 
-	function showLargeFolderWarning(node: TreeNode) {
+	async function showLargeFolderWarning(node: TreeNode) {
 		// TODO: Implement warning modal
 		// For now, just expand anyway
-		hierarchyService.expandFolder(node.id);
+		await hierarchyService.expandFolder(node.id);
 	}
 
 	function handleNodeDragStart(node: TreeNode, x: number, y: number) {
@@ -243,6 +245,9 @@
 		if (result.success && result.movedNode && result.newParent) {
 			// The hierarchy service will automatically update via vault listeners
 			console.log('Successfully moved', result.movedNode.name, 'to', result.newParent.name);
+			
+			// Ensure the new parent folder is expanded to show the moved item
+			hierarchyService.ensureFolderExpanded(result.newParent.path);
 		}
 	}
 
@@ -450,7 +455,7 @@
 	>
 		<Layer bind:handle={layer}>
 			<!-- Connection lines (drawn first, so they appear behind nodes) -->
-			{#each getConnectionLines() as line}
+			{#each connectionLines as line}
 				<Line 
 					config={{
 						points: line.points,

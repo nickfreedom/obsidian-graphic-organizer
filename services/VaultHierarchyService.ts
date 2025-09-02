@@ -10,6 +10,7 @@ export class VaultHierarchyService {
 	private treeLayout: TreeLayout;
 	private listeners: Set<(layout: TreeLayout) => void> = new Set();
 	private rootNode: TreeNode | null = null;
+	private expandedFolders: Set<string> = new Set(); // Track expanded folders
 
 	constructor(app: App, plugin: GraphicOrganizerPlugin) {
 		this.app = app;
@@ -55,18 +56,19 @@ export class VaultHierarchyService {
 		this.listeners.forEach(callback => callback(this.treeLayout));
 	}
 
+
+
 	public async buildInitialTree(): Promise<TreeLayout> {
 		const rootFolder = this.app.vault.getRoot();
 		this.rootNode = this.createNodeFromFolder(rootFolder, null, 0);
-		
-		// Only load immediate children initially (lazy loading)
-		await this.loadFolderChildren(this.rootNode, false);
 		
 		this.treeLayout.nodes.clear();
 		this.treeLayout.levels.clear();
 		this.treeLayout.maxDepth = 0;
 
-		this.addNodeToLayout(this.rootNode);
+		// Recursively build the tree, loading children for all expanded folders
+		await this.recursivelyBuildTreeNodes(this.rootNode);
+		
 		this.calculatePositions();
 		
 		console.log('Graphic Organizer: Tree built with', this.treeLayout.nodes.size, 'nodes');
@@ -81,28 +83,22 @@ export class VaultHierarchyService {
 		const node = this.treeLayout.nodes.get(nodeId);
 		if (!node || node.type !== 'folder') return;
 
-		if (!node.isLoaded) {
-			const folder = this.app.vault.getAbstractFileByPath(node.path) as TFolder;
-			if (folder) {
-				await this.loadFolderChildren(node, true);
-				node.isLoaded = true;
-			}
-		}
-
-		node.isExpanded = true;
-		this.rebuildLayout();
-		this.calculatePositions();
-		this.notifyListeners();
+		// Add to expanded folders set (source of truth)
+		this.expandedFolders.add(node.path);
+		
+		// Rebuild the entire tree to ensure proper loading of all expanded folders
+		await this.rebuildLayout();
 	}
 
-	public collapseFolder(nodeId: string): void {
+	public async collapseFolder(nodeId: string): Promise<void> {
 		const node = this.treeLayout.nodes.get(nodeId);
 		if (!node || node.type !== 'folder') return;
 
-		node.isExpanded = false;
-		this.rebuildLayout();
-		this.calculatePositions();
-		this.notifyListeners();
+		// Remove from expanded folders set (source of truth)
+		this.expandedFolders.delete(node.path);
+		
+		// Rebuild the entire tree to ensure proper layout
+		await this.rebuildLayout();
 	}
 
 	private createNodeFromFile(file: TFile, parent: TreeNode | null, depth: number): TreeNode {
@@ -121,6 +117,7 @@ export class VaultHierarchyService {
 
 	private createNodeFromFolder(folder: TFolder, parent: TreeNode | null, depth: number): TreeNode {
 		const isRoot = folder.path === '' || folder.path === '/';
+		const wasExpanded = this.expandedFolders.has(folder.path);
 		return {
 			id: isRoot ? 'root' : folder.path,
 			name: folder.name || 'Vault Root',
@@ -128,7 +125,7 @@ export class VaultHierarchyService {
 			path: folder.path,
 			parent,
 			children: [],
-			isExpanded: depth === 0, // Root folder starts expanded
+			isExpanded: depth === 0 || wasExpanded, // Preserve expansion state
 			isLoaded: false,
 			hasWarning: false
 		};
@@ -189,14 +186,47 @@ export class VaultHierarchyService {
 		}
 	}
 
-	private rebuildLayout(): void {
+	private async recursivelyBuildTreeNodes(node: TreeNode): Promise<void> {
+		// Add this node to the layout
+		this.treeLayout.nodes.set(node.id, node);
+
+		// If this is a folder and it's marked as expanded, ensure its children are loaded
+		if (node.type === 'folder' && node.isExpanded) {
+			// Load children if not already loaded
+			if (!node.isLoaded) {
+				const folder = this.app.vault.getAbstractFileByPath(node.path) as TFolder;
+				if (folder) {
+					await this.loadFolderChildren(node, true); // Check threshold
+					node.isLoaded = true;
+				}
+			}
+			
+			// Recursively add all children to the layout
+			if (node.children) {
+				for (const child of node.children) {
+					// The child's isExpanded state is already set correctly by createNodeFromFolder
+					// when loadFolderChildren was called.
+					await this.recursivelyBuildTreeNodes(child);
+				}
+			}
+		}
+	}
+
+	private async rebuildLayout(): Promise<void> {
+		// Recreate root node to ensure its expansion state is fresh
+		const rootFolder = this.app.vault.getRoot();
+		this.rootNode = this.createNodeFromFolder(rootFolder, null, 0);
+		
 		// Clear the current layout
 		this.treeLayout.nodes.clear();
+		this.treeLayout.levels.clear();
+		this.treeLayout.maxDepth = 0;
 		
-		// Rebuild layout from root, respecting current expansion states
-		if (this.rootNode) {
-			this.addNodeToLayout(this.rootNode);
-		}
+		// Recursively rebuild the tree, loading children for all expanded folders
+		await this.recursivelyBuildTreeNodes(this.rootNode);
+		
+		this.calculatePositions();
+		this.notifyListeners();
 	}
 
 	private calculatePositions(): void {
@@ -583,6 +613,14 @@ export class VaultHierarchyService {
 		this.buildInitialTree().then(() => {
 			this.notifyListeners();
 		});
+	}
+
+	public async ensureFolderExpanded(folderPath: string): Promise<void> {
+		// Ensure a specific folder is expanded after a drag/drop operation
+		this.expandedFolders.add(folderPath);
+		
+		// Rebuild the tree to ensure the target folder is expanded and its children are loaded
+		await this.buildInitialTree();
 	}
 
 	public getLayout(): TreeLayout {
