@@ -15,7 +15,7 @@ export class FileIconService {
 		}
 	}
 
-	public getFileType(extension: string): string {
+	public getFileType(extension: string): FileType {
 		if (!extension) return FileType.GENERIC;
 		
 		const normalizedExt = extension.startsWith('.') ? extension.toLowerCase() : `.${extension.toLowerCase()}`;
@@ -24,11 +24,7 @@ export class FileIconService {
 		return config ? config.type : FileType.GENERIC;
 	}
 
-	public getFileIcon(extension: string): string {
-		const fileType = this.getFileType(extension);
-		const config = FILE_TYPE_CONFIGS.find(c => c.type === fileType);
-		return config ? config.icon : FILE_TYPE_CONFIGS.find(c => c.type === FileType.GENERIC)!.icon;
-	}
+	// Icon methods removed - now using SvgIconService
 
 	public getFileColor(extension: string): string {
 		const fileType = this.getFileType(extension);
@@ -45,9 +41,7 @@ export class FileIconService {
 			.trim() || '#a4b0be';
 	}
 
-	public getFolderIcon(isOpen: boolean): string {
-		return isOpen ? '📂' : '📁';
-	}
+	// Folder icons now handled by SvgIconService
 
 	public getFolderColor(): string {
 		// Use a more theme-aware approach for folder colors
@@ -58,9 +52,7 @@ export class FileIconService {
 		return accentColor || FILE_TYPE_CONFIGS.find(c => c.type === FileType.FOLDER)!.color;
 	}
 
-	public getWarningIcon(): string {
-		return '⚠️';
-	}
+	// Warning icons now handled by SvgIconService
 
 	public getWarningColor(): string {
 		// Use Obsidian's CSS variable for error color if available

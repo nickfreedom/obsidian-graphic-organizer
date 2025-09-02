@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { Group, Rect, Text, Circle } from 'svelte-konva';
+	import { Group, Rect, Text, Circle, Path } from 'svelte-konva';
 	import { TreeNode } from '../types/TreeNode';
 	import { FileIconService } from '../services/FileIconService';
+	import { SvgIconService } from '../services/SvgIconService';
 	import { CoordinateService } from '../services/CoordinateService';
 
 	/**
@@ -40,9 +41,9 @@
 
 	// Calculate node appearance
 	$: isFolder = node.type === 'folder';
-	$: icon = isFolder 
-		? fileIconService.getFolderIcon(node.isExpanded || false)
-		: fileIconService.getFileIcon(node.fileType || '');
+	$: iconData = isFolder 
+		? SvgIconService.getFolderIconData(node.isExpanded || false)
+		: SvgIconService.getIconData(fileIconService.getFileType(node.fileType || ''));
 	$: color = isFolder 
 		? fileIconService.getFolderColor()
 		: fileIconService.getFileColor(node.fileType || '');
@@ -267,21 +268,22 @@
 			x: padding + iconSize / 2,
 			y: nodeHeight / 2,
 			radius: iconSize / 2 + 2,
-			fill: getCSSVariable('--background-modifier-hover') || 'rgba(255, 255, 255, 0.2)'
+			fill: color,
+			stroke: textColor,
+			strokeWidth: 0.5,
+			opacity: 0.8
 		}}
 	/>
 	
-	<!-- Icon text (emoji) -->
-	<Text
+	<!-- SVG Icon -->
+	<Path
 		config={{
-			x: padding,
-			y: nodeHeight / 2 - iconSize / 2,
-			width: iconSize,
-			height: iconSize,
-			text: icon,
-			fontSize: iconSize - 2,
-			align: 'center',
-			verticalAlign: 'middle'
+			x: padding + iconSize / 2 - 6, // Center the 12px icon in the 16px space
+			y: nodeHeight / 2 - 6,
+			data: iconData.path,
+			fill: '#ffffff',
+			scaleX: 0.5, // Scale down from 24x24 to 12x12
+			scaleY: 0.5
 		}}
 	/>
 	
@@ -302,34 +304,30 @@
 	
 	<!-- Warning indicator for large folders -->
 	{#if isFolder && node.hasWarning}
-		<Text
+		<Path
 			config={{
 				x: nodeWidth - padding - 12,
 				y: padding,
-				width: 12,
-				height: 12,
-				text: fileIconService.getWarningIcon(),
-				fontSize: 10,
-				align: 'center',
-				verticalAlign: 'middle'
+				data: SvgIconService.getWarningIconData().path,
+				fill: fileIconService.getWarningColor(),
+				scaleX: 0.5,
+				scaleY: 0.5
 			}}
 		/>
 	{/if}
 	
 	<!-- Expansion indicator for folders -->
 	{#if isFolder}
-		<Text
+		<Path
 			config={{
 				x: nodeWidth - padding - 8,
 				y: nodeHeight - padding - 8,
-				width: 8,
-				height: 8,
-				text: node.isExpanded ? '−' : '+',
-				fontSize: 10,
+				data: node.isExpanded 
+					? 'M19 13H5v-2h14v2z' // Minus icon
+					: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', // Plus icon
 				fill: textColor,
-				fontFamily: 'monospace',
-				align: 'center',
-				verticalAlign: 'middle'
+				scaleX: 0.33,
+				scaleY: 0.33
 			}}
 		/>
 	{/if}
