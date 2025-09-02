@@ -148,24 +148,19 @@
 
 	// Get menu items based on node type - use explicit reactive statement
 	$: {
-		console.log('ContextMenu: Reactive block triggered with node:', node);
 		menuItems = getMenuItems(node);
-		console.log('ContextMenu: Generated menuItems:', menuItems);
 	}
 
 	function getMenuItems(node: TreeNode | null) {
-		console.log('ContextMenu getMenuItems called with node:', node);
 		
 		if (!node) {
 			// No specific node - could show general options
-			console.log('ContextMenu: No node provided');
 			return [];
 		}
 		
-		console.log('ContextMenu: Node type is:', node.type);
+
 		
 		if (node.type === 'folder') {
-			console.log('ContextMenu: Returning folder menu items');
 			return [
 				{ label: 'New note', action: createNewNote, icon: '📝' },
 				{ label: 'New folder', action: createNewFolder, icon: '📁' },
@@ -176,7 +171,6 @@
 			];
 		} else {
 			// File node
-			console.log('ContextMenu: Returning file menu items');
 			return [
 				{ label: 'Delete', action: deleteItem, icon: '🗑️', destructive: true }
 			];

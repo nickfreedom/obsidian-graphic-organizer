@@ -47,9 +47,7 @@
 	let contextMenuY = 0;
 	let contextNode: TreeNode | null = null;
 
-	// Debug contextNode changes
-	$: console.log('TreeCanvas: contextNode reactive change:', contextNode);
-	$: console.log('TreeCanvas: showContextMenu reactive change:', showContextMenu);
+
 
 	// Drag configuration
 	Konva.dragDistance = 5; // Threshold for distinguishing click from drag
@@ -92,22 +90,21 @@
 			const width = container.clientWidth;
 			const height = container.clientHeight;
 			
-			console.log('Graphic Organizer: Container dimensions:', width, 'x', height);
+
 			
 			// Set dimensions with fallbacks if container is not yet sized
 			stageWidth = width > 0 ? width : 800;
 			stageHeight = height > 0 ? height : 600;
 			
-			console.log('Graphic Organizer: Stage dimensions set to:', stageWidth, 'x', stageHeight);
+
 		} else {
-			console.log('Graphic Organizer: Container not found, using defaults');
 			stageWidth = 800;
 			stageHeight = 600;
 		}
 	}
 
 	function onTreeLayoutChange(newLayout: TreeLayout) {
-		console.log('Graphic Organizer: Layout changed with', newLayout.nodes.size, 'nodes');
+
 		treeLayout = newLayout;
 		updateVisibleNodes();
 		
@@ -133,7 +130,7 @@
 			addVisibleNode(rootNode);
 		}
 
-		console.log('Graphic Organizer: Visible nodes updated, count:', visibleNodes.length);
+
 		
 		// Trigger reactivity
 		visibleNodes = visibleNodes;
@@ -203,16 +200,14 @@
 
 	function handleNodeDragStart(node: TreeNode, x: number, y: number) {
 		if (x !== undefined && y !== undefined) {
-			console.log('Drag start:', node.name, x, y);
 			dragDropService.startDrag(node, x, y);
 			dragState = dragDropService.getDragState();
-			console.log('Drag state after start:', dragState);
 		}
 	}
 
 	function handleNodeDragMove(node: TreeNode, x: number, y: number) {
 		if (x !== undefined && y !== undefined) {
-			console.log('Drag move:', node.name, 'to', x, y);
+
 			
 			// The coordinates from Node.svelte are stage coordinates, not mouse coordinates
 			// We need to get the actual mouse position from the stage
@@ -221,33 +216,27 @@
 			if (mousePos) {
 				// Check if stage has transform (zoom/pan) that affects coordinates
 				const stageTransform = stage.getTransform();
-				console.log('Mouse pos (raw):', mousePos);
-				console.log('Stage transform:', stageTransform);
+
 				
 				// Apply inverse transform to get actual stage coordinates
 				const stageCoords = stageTransform.copy().invert().point(mousePos);
-				console.log('Mouse pos (transformed to stage coords):', stageCoords);
+
 				
 				// Find potential drop target using transformed coordinates
 				const potentialTarget = dragDropService.isValidDropZone(stageCoords.x, stageCoords.y, visibleNodes, node);
-				console.log('Potential target:', potentialTarget?.name || 'none');
 				dragDropService.updateDrag(stageCoords.x, stageCoords.y, potentialTarget);
 				const newDragState = dragDropService.getDragState();
-				console.log('Updated drag state:', newDragState);
 				dragState = newDragState;
 			}
 		}
 	}
 
 	function handleNodeDragEnd(node: TreeNode) {
-		console.log('Drag end for:', node.name);
 		const result = dragDropService.endDrag();
-		console.log('Drag end result:', result);
 		dragState = null; // Clear drag state
 		
 		if (result.success && result.movedNode && result.newParent) {
 			// The hierarchy service will automatically update via vault listeners
-			console.log('Successfully moved', result.movedNode.name, 'to', result.newParent.name);
 			
 			// Ensure the new parent folder is expanded to show the moved item
 			hierarchyService.ensureFolderExpanded(result.newParent.path);
@@ -255,35 +244,30 @@
 	}
 
 	function handleRightClick(node: TreeNode, x: number, y: number) {
-		console.log('TreeCanvas handleRightClick called with:', { node, x, y });
+
 		if (x !== undefined && y !== undefined && node) {
-			console.log('TreeCanvas: Setting context state - node:', node.name, 'pos:', x, y);
+
 			
 			// Set all values in sequence with explicit logging
 			contextMenuX = x;
 			contextMenuY = y;
-			console.log('TreeCanvas: Set position:', contextMenuX, contextMenuY);
 			
 			contextNode = node;
-			console.log('TreeCanvas: Set contextNode:', contextNode);
 			
 			// Use setTimeout to ensure all reactive updates complete before showing menu
 			setTimeout(() => {
 				showContextMenu = true;
-				console.log('TreeCanvas: Set showContextMenu to true. contextNode is now:', contextNode);
 			}, 0);
 		}
 	}
 
 	function handleCanvasRightClick(x: number, y: number) {
-		console.log('TreeCanvas: handleCanvasRightClick called - this should only happen for clicks on empty space');
 		// Right click on empty space - don't show context menu
 		// (In the future, this could show general options like "New folder" at root level)
-		console.log('TreeCanvas: Not showing context menu for blank space click');
 	}
 
 	function closeContextMenu() {
-		console.log('TreeCanvas: closeContextMenu called');
+
 		showContextMenu = false;
 		contextNode = null;
 	}
@@ -392,12 +376,7 @@
 		stageX = viewportCenterX - rootCenterX * scale;
 		stageY = viewportTopY - rootTopY * scale;
 
-		console.log('Graphic Organizer: Centered viewport on root node', {
-			rootPos: { x: rootNode.x, y: rootNode.y },
-			rootCenter: { x: rootCenterX, y: rootTopY },
-			viewport: { width: stageWidth, height: stageHeight },
-			transform: { x: stageX, y: stageY, scale }
-		});
+
 	}
 
 	function convertAbsoluteToStageCoordinates(x: number, y: number) {
@@ -473,17 +452,15 @@
 				
 				// Check if the target is a Node (Group) vs the Stage itself
 				const target = e.detail.target;
-				console.log('Stage mousedown - target:', target?.constructor?.name, target);
 				
 				// Only handle canvas right-clicks if the target is the Stage itself, not a Node
 				if (!target || target === stage) {
 					const pos = stage.getPointerPosition();
 					if (pos) {
-						console.log('Stage: Handling canvas right-click');
 						handleCanvasRightClick(pos.x, pos.y);
 					}
 				} else {
-					console.log('Stage: Ignoring right-click on Node, letting Node handle it');
+					// Node will handle the right-click
 				}
 			}
 		}}
@@ -524,8 +501,6 @@
 	/>
 
 	{#if showContextMenu}
-		<!-- Debug: log what we're passing to ContextMenu -->
-		{console.log('TreeCanvas: About to create ContextMenu with node:', contextNode)}
 		<ContextMenu 
 			{app}
 			{plugin}

@@ -71,9 +71,6 @@ export class VaultHierarchyService {
 		
 		this.calculatePositions();
 		
-		console.log('Graphic Organizer: Tree built with', this.treeLayout.nodes.size, 'nodes');
-		console.log('Root node:', this.rootNode);
-		
 		this.notifyListeners();
 		
 		return this.treeLayout;
@@ -522,8 +519,6 @@ export class VaultHierarchyService {
 		if (node.children && node.isExpanded && node.children.length > 0) {
 			const childY = y + levelHeight;
 			
-			console.log(`Positioning children of ${node.name}: ${node.children.map(c => c.name).join(', ')}`);
-			
 			// Calculate spacing with smart spacing between different parent groups
 			const minSpacing = 10;
 			const subtreeSpacing = 40;
@@ -537,7 +532,6 @@ export class VaultHierarchyService {
 				
 				// Add extra spacing between children from different parent lineages
 				if (this.hasChildrenFromDifferentParents(currentChild, previousChild)) {
-					console.log(`Adding extra spacing between ${previousChild.name} and ${currentChild.name} (different parents: ${previousChild.parent?.name} vs ${currentChild.parent?.name})`);
 					totalWidth += subtreeSpacing;
 				} else {
 					totalWidth += minSpacing;
@@ -592,12 +586,7 @@ export class VaultHierarchyService {
 		const testFolder2 = this.findNodeByName('Test Folder 2');
 		const canvas2 = this.findNodeByName('Canvas 2.canvas');
 		
-		if (testFolder2) {
-			console.log(`FINAL: Test Folder 2 at x=${testFolder2.x}, y=${testFolder2.y}`);
-		}
-		if (canvas2) {
-			console.log(`FINAL: Canvas 2.canvas at x=${canvas2.x}, y=${canvas2.y}`);
-		}
+		// Debug positions removed
 	}
 	
 	private findNodeByName(name: string): TreeNode | null {

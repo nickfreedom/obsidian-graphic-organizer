@@ -16,10 +16,6 @@ export class CoordinateService {
      * (like context menus)
      */
     mouseEventToViewport(evt: MouseEvent, stageContainer?: HTMLElement): { x: number, y: number } {
-        console.log('CoordinateService: Converting mouse coordinates');
-        console.log('  Raw mouse (clientX/Y):', evt.clientX, evt.clientY);
-        console.log('  Raw mouse (pageX/Y):', evt.pageX, evt.pageY);
-        console.log('  Raw mouse (screenX/Y):', evt.screenX, evt.screenY);
 
         // For fixed positioned elements, we want viewport coordinates
         let x = evt.clientX;
@@ -27,8 +23,6 @@ export class CoordinateService {
 
         if (stageContainer) {
             const containerRect = stageContainer.getBoundingClientRect();
-            console.log('  Container rect:', containerRect);
-            console.log('  Container offset from viewport:', containerRect.left, containerRect.top);
 
             // Check if we need to account for any additional offsets
             // In Obsidian, there might be additional interface elements affecting positioning
@@ -37,17 +31,15 @@ export class CoordinateService {
             
             if (activeLeaf?.view?.containerEl) {
                 const viewRect = activeLeaf.view.containerEl.getBoundingClientRect();
-                console.log('  Active view rect:', viewRect);
                 
                 // If the view container is different from stage container, 
                 // we might need additional adjustments
                 if (viewRect.left !== containerRect.left || viewRect.top !== containerRect.top) {
-                    console.log('  View container differs from stage container');
+                    // Additional adjustments might be needed here
                 }
             }
         }
 
-        console.log('  Final viewport coordinates:', x, y);
         return { x, y };
     }
 
@@ -56,7 +48,6 @@ export class CoordinateService {
      * (like drag/drop hit detection)
      */
     mouseEventToStage(evt: MouseEvent, stage: any): { x: number, y: number } {
-        console.log('CoordinateService: Converting mouse to stage coordinates');
         
         // Get the pointer position relative to the stage
         const stagePos = stage.getPointerPosition();
@@ -66,15 +57,10 @@ export class CoordinateService {
             const stageTransform = stage.getTransform();
             const stageCoords = stageTransform.copy().invert().point(stagePos);
             
-            console.log('  Stage pointer position:', stagePos);
-            console.log('  Stage transform:', stageTransform);
-            console.log('  Transformed stage coordinates:', stageCoords);
-            
             return { x: stageCoords.x, y: stageCoords.y };
         }
         
         // Fallback to raw coordinates
-        console.log('  Fallback to raw coordinates');
         return { x: evt.clientX, y: evt.clientY };
     }
 
@@ -86,7 +72,7 @@ export class CoordinateService {
             const stage = konvaTarget?.getStage?.();
             return stage?.container?.() || null;
         } catch (error) {
-            console.warn('CoordinateService: Could not get stage container:', error);
+            // Could not get stage container
             return null;
         }
     }

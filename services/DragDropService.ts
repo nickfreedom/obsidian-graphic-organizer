@@ -139,22 +139,15 @@ export class DragDropService {
 	}
 
 	public isValidDropZone(x: number, y: number, nodes: TreeNode[], draggedNode: TreeNode): TreeNode | null {
-		console.log(`Checking drop zone at ${x}, ${y} with ${nodes.length} nodes`);
-		
 		// Find the node at the given coordinates that can accept drops
 		for (const node of nodes) {
-			console.log(`Checking node ${node.name} (type: ${node.type}) at ${node.x}, ${node.y}`);
-			
 			if (node.type === 'folder' && node !== draggedNode && this.isPointInNode(x, y, node)) {
-				console.log(`Point is in folder ${node.name}, checking if valid drop target`);
 				// Additional validation to ensure it's a valid drop target
 				if (this.isValidDropTarget(draggedNode, node)) {
-					console.log(`${node.name} is a valid drop target!`);
 					return node;
 				}
 			}
 		}
-		console.log('No valid drop target found');
 		return null;
 	}
 

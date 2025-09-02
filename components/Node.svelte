@@ -53,7 +53,7 @@
 	$: y = node.y || 0;
 
 	function handleClick() {
-		console.log('Node click handler called for:', node.name);
+
 		if (wasDragging) {
 			// Ignore clicks that were actually drags
 			return;
@@ -61,7 +61,7 @@
 		
 		if (wasRightClicking) {
 			// Ignore clicks that were actually right clicks
-			console.log('Ignoring click because it was a right click');
+
 			wasRightClicking = false;
 			return;
 		}
@@ -70,16 +70,11 @@
 	}
 
 	function handleRightClick(e: any) {
-		console.log('Node handleRightClick called for:', node.name, '(click #' + Date.now() + ')');
-		console.log('Full event object:', e);
-		console.log('Event detail:', e.detail);
-		console.log('Event evt:', e.detail?.evt);
-		console.log('Event button:', e.detail?.evt?.button);
-		console.log('Event which:', e.detail?.evt?.which);
+
 		
 		// Check if it's a right click (button 2 or which 3)
 		if (e.detail?.evt?.button === 2 || e.detail?.evt?.which === 3) {
-			console.log('Right click detected, preventing default and stopping propagation');
+
 			e.detail.evt.preventDefault();
 			e.detail.evt.stopPropagation(); // Prevent the Stage from handling this event
 			
@@ -98,15 +93,12 @@
 			// Use the mouse coordinates from the DOM event for menu positioning
 			let menuX = e.detail.evt.clientX;
 			let menuY = e.detail.evt.clientY;
-			console.log('Mouse coordinates (clientX/Y):', menuX, menuY);
-			console.log('Mouse coordinates (screenX/Y):', e.detail.evt.screenX, e.detail.evt.screenY);
-			console.log('Mouse coordinates (pageX/Y):', e.detail.evt.pageX, e.detail.evt.pageY);
+
 			
 			// Account for container offset since ContextMenu is rendered inside TreeCanvas container
 			if (stageContainer) {
 				const containerRect = stageContainer.getBoundingClientRect();
-				console.log('Stage container rect (current):', containerRect);
-				console.log('Stage container offset from viewport (current):', containerRect.left, containerRect.top);
+
 				
 				// Since the ContextMenu is positioned relative to the TreeCanvas container,
 				// we need to subtract the container offset to get the correct position
@@ -114,9 +106,8 @@
 				const originalY = menuY;
 				menuX = menuX - containerRect.left;
 				menuY = menuY - containerRect.top;
-				console.log('Coordinate adjustment:', originalX, '-', containerRect.left, '=', menuX, '|', originalY, '-', containerRect.top, '=', menuY);
+
 			} else {
-				console.log('Warning: No stage container found for coordinate adjustment');
 			}
 			
 			dispatch('rightclick', { 
@@ -124,13 +115,12 @@
 				x: menuX, 
 				y: menuY 
 			});
-			console.log('Dispatched rightclick event with node:', node.name);
+
 		}
 	}
 
 	function handleDragStart(e: any) {
-		console.log('Node handleDragStart called for:', node.name);
-		console.log('Event object:', e);
+
 		wasDragging = true;
 		
 		// Try different ways to get position
@@ -143,8 +133,7 @@
 			pos = { x: node.x || 0, y: node.y || 0 };
 		}
 		
-		console.log('Position:', pos);
-		console.log('Dispatching dragstart event');
+
 		dispatch('dragstart', { 
 			node, 
 			x: pos.x, 
@@ -153,7 +142,7 @@
 	}
 
 	function handleDragMove(e: any) {
-		console.log('Node handleDragMove called for:', node.name);
+
 		
 		// Get the current position of the dragged node
 		let pos = e.target?.absolutePosition?.();
@@ -175,7 +164,7 @@
 			pos = { x: node.x || 0, y: node.y || 0 };
 		}
 		
-		console.log('DragMove position:', pos);
+
 		dispatch('dragmove', { 
 			node, 
 			x: pos.x, 
@@ -184,7 +173,7 @@
 	}
 
 	function handleDragEnd(e: any) {
-		console.log('Node handleDragEnd called for:', node.name);
+
 		
 		// Get the stage and pointer position (mouse position)
 		const konvaTarget = e.detail?.target || e.detail?.currentTarget;
@@ -203,7 +192,7 @@
 			pos = { x: node.x || 0, y: node.y || 0 };
 		}
 		
-		console.log('DragEnd mouse position:', pos);
+
 		dispatch('dragend', { 
 			node, 
 			x: pos.x, 
