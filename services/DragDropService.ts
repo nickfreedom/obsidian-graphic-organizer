@@ -29,7 +29,7 @@ export class DragDropService {
 		this.dragState = {
 			isDragging: true,
 			draggedNode: node,
-			originalPosition: { x, y },
+			originalPosition: { x: node.x || 0, y: node.y || 0 },
 			validDropTarget: null
 		};
 	}
@@ -38,13 +38,11 @@ export class DragDropService {
 		if (!this.dragState.isDragging || !this.dragState.draggedNode) return;
 
 		// Validate drop target
-		this.dragState.validDropTarget = this.isValidDropTarget(
-			this.dragState.draggedNode,
-			potentialTarget
-		) ? potentialTarget : null;
+		const isValid = this.isValidDropTarget(this.dragState.draggedNode, potentialTarget);
+		this.dragState.validDropTarget = isValid ? potentialTarget : null;
 	}
 
-	public endDrag(): { success: boolean; movedNode?: TreeNode; newParent?: TreeNode } {
+	public endDrag(): { success: boolean; movedNode?: TreeNode; newParent?: TreeNode; shouldSnapBack?: boolean; originalPosition?: { x: number; y: number } } {
 		if (!this.dragState.isDragging || !this.dragState.draggedNode) {
 			this.resetDragState();
 			return { success: false };
@@ -53,7 +51,9 @@ export class DragDropService {
 		const result = {
 			success: false,
 			movedNode: this.dragState.draggedNode,
-			newParent: this.dragState.validDropTarget
+			newParent: this.dragState.validDropTarget,
+			shouldSnapBack: false,
+			originalPosition: this.dragState.originalPosition
 		};
 
 		if (this.dragState.validDropTarget) {
@@ -62,6 +62,9 @@ export class DragDropService {
 				this.dragState.draggedNode,
 				this.dragState.validDropTarget
 			);
+		} else {
+			// No valid drop target - should snap back
+			result.shouldSnapBack = true;
 		}
 
 		this.resetDragState();

@@ -12,6 +12,18 @@
 	import ZoomControls from './ZoomControls.svelte';
 	import ContextMenu from './ContextMenu.svelte';
 
+	/**
+	 * Converts a string to a CSS-safe identifier by replacing all non-CSS-friendly characters
+	 * with encoded equivalents. CSS identifiers can only contain: a-z, A-Z, 0-9, -, _, and Unicode ≥ U+0080
+	 */
+	function toCssId(str: string): string {
+		return str.replace(/[^a-zA-Z0-9\-_\u0080-\uFFFF]/g, (match) => {
+			// Convert character to hex code for unique, reversible encoding
+			const code = match.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+			return `_U${code}_`;
+		});
+	}
+
 	// Props
 	export let app: App;
 	export let plugin: GraphicOrganizerPlugin;
@@ -240,6 +252,36 @@
 			
 			// Ensure the new parent folder is expanded to show the moved item
 			hierarchyService.ensureFolderExpanded(result.newParent.path);
+		} else if (result.shouldSnapBack && result.originalPosition) {
+			// Snap back to original position with animation
+			snapNodeBackToPosition(node, result.originalPosition);
+		}
+	}
+
+	function snapNodeBackToPosition(node: TreeNode, originalPosition: { x: number; y: number }) {
+		// Find the Konva node for this TreeNode to animate it back
+		if (stage && layer) {
+			// Encode the node ID to match what's used in the Node component
+			const encodedId = `node-${toCssId(node.id)}`;
+			const konvaNode = layer.findOne(`#${encodedId}`);
+			
+			if (konvaNode) {
+				// Create a subtle bounce effect for better visual feedback
+				const tween = new Konva.Tween({
+					node: konvaNode,
+					duration: 0.4,
+					x: originalPosition.x,
+					y: originalPosition.y,
+					easing: Konva.Easings.BackEaseOut,
+					onFinish: () => {
+						// Ensure the node position is exactly restored
+						konvaNode.x(originalPosition.x);
+						konvaNode.y(originalPosition.y);
+						layer.batchDraw();
+					}
+				});
+				tween.play();
+			}
 		}
 	}
 

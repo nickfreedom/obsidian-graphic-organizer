@@ -5,6 +5,18 @@
 	import { FileIconService } from '../services/FileIconService';
 	import { CoordinateService } from '../services/CoordinateService';
 
+	/**
+	 * Converts a string to a CSS-safe identifier by replacing all non-CSS-friendly characters
+	 * with encoded equivalents. CSS identifiers can only contain: a-z, A-Z, 0-9, -, _, and Unicode ≥ U+0080
+	 */
+	function toCssId(str: string): string {
+		return str.replace(/[^a-zA-Z0-9\-_\u0080-\uFFFF]/g, (match) => {
+			// Convert character to hex code for unique, reversible encoding
+			const code = match.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+			return `_U${code}_`;
+		});
+	}
+
 	// Props
 	export let node: TreeNode;
 	export let isValidDropTarget: boolean = false;
@@ -214,12 +226,13 @@
 	$: displayText = getTruncatedText(node.name);
 </script>
 
-<Group
-	config={{
-		x,
-		y,
-		draggable: true
-	}}
+	<Group
+		config={{
+			x,
+			y,
+			draggable: true,
+			id: `node-${toCssId(node.id)}`
+		}}
 	on:click={handleClick}
 	on:mousedown={handleRightClick}
 	on:dragstart={handleDragStart}
