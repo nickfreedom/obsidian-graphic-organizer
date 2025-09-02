@@ -1,7 +1,7 @@
 {
   "id": "graphic-organizer",
   "name": "Graphic Organizer",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "minAppVersion": "0.15.0",
   "description": "Interactive tree view for visualizing and managing your vault's file hierarchy",
   "author": "Nick Le Guillou - Superhuman Curiosity",
