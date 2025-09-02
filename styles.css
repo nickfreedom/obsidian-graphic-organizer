@@ -4,7 +4,9 @@
   height: 100%;
   position: relative;
   background: var(--background-primary);
+  color: var(--text-normal);
   overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
 }
 
 /* Ensure the view takes full available space */
@@ -49,4 +51,48 @@
 
 .modal-backdrop {
   z-index: 10000;
+}
+
+/* Theme-specific enhancements */
+.theme-light .graphic-organizer-container {
+  /* Light theme specific adjustments */
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border);
+}
+
+.theme-dark .graphic-organizer-container {
+  /* Dark theme specific adjustments */
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border);
+}
+
+/* Ensure proper contrast for interactive elements */
+.graphic-organizer-container button {
+  background: var(--interactive-normal);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.graphic-organizer-container button:hover {
+  background: var(--interactive-hover);
+}
+
+.graphic-organizer-container button:active {
+  background: var(--interactive-active);
+}
+
+/* Theme-aware scrollbars if any */
+.graphic-organizer-container ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.graphic-organizer-container ::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+.graphic-organizer-container ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-bg);
+  border-radius: 4px;
+}
+
+.graphic-organizer-container ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-bg-hover);
 }

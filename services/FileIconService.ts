@@ -36,12 +36,26 @@ export class FileIconService {
 		return config ? config.color : FILE_TYPE_CONFIGS.find(c => c.type === FileType.GENERIC)!.color;
 	}
 
+	/**
+	 * Get a theme-aware color for generic files/folders when we want them to blend with the theme
+	 */
+	public getThemeAwareColor(): string {
+		return getComputedStyle(document.documentElement)
+			.getPropertyValue('--text-muted')
+			.trim() || '#a4b0be';
+	}
+
 	public getFolderIcon(isOpen: boolean): string {
 		return isOpen ? '📂' : '📁';
 	}
 
 	public getFolderColor(): string {
-		return FILE_TYPE_CONFIGS.find(c => c.type === FileType.FOLDER)!.color;
+		// Use a more theme-aware approach for folder colors
+		const accentColor = getComputedStyle(document.documentElement)
+			.getPropertyValue('--interactive-accent')
+			.trim();
+		
+		return accentColor || FILE_TYPE_CONFIGS.find(c => c.type === FileType.FOLDER)!.color;
 	}
 
 	public getWarningIcon(): string {
@@ -49,7 +63,10 @@ export class FileIconService {
 	}
 
 	public getWarningColor(): string {
-		return '#ff6b6b';
+		// Use Obsidian's CSS variable for error color if available
+		return getComputedStyle(document.documentElement)
+			.getPropertyValue('--text-error')
+			.trim() || '#ff6b6b';
 	}
 
 	// Method to easily extend file type support

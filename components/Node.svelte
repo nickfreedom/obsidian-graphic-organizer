@@ -46,19 +46,28 @@
 	$: color = isFolder 
 		? fileIconService.getFolderColor()
 		: fileIconService.getFileColor(node.fileType || '');
-	$: textColor = '#ffffff';
+	// Get CSS variables for theme-aware colors
+	function getCSSVariable(varName: string): string {
+		return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+	}
+
+	$: textColor = getCSSVariable('--text-normal') || '#ffffff';
+	$: accentColor = getCSSVariable('--interactive-accent') || '#00ff00';
+	$: accentHover = getCSSVariable('--interactive-accent-hover') || '#004400';
+	$: shadowNormal = getCSSVariable('--shadow-color') || 'rgba(0, 0, 0, 0.3)';
+	
 	$: strokeColor = isValidDropTarget 
-		? '#00ff00' 
+		? accentColor
 		: (isFolder && node.hasWarning ? fileIconService.getWarningColor() : color);
 	$: strokeWidth = isValidDropTarget 
 		? 4 
 		: (isFolder && node.hasWarning ? 2 : 1);
 	$: backgroundColor = isValidDropTarget 
-		? '#004400' 
+		? accentHover
 		: color;
 	$: shadowConfig = isValidDropTarget 
-		? { shadowColor: '#00ff00', shadowBlur: 8, shadowOffset: { x: 0, y: 0 }, shadowOpacity: 0.6 }
-		: { shadowColor: 'black', shadowBlur: 3, shadowOffset: { x: 1, y: 1 }, shadowOpacity: 0.3 };
+		? { shadowColor: accentColor, shadowBlur: 8, shadowOffset: { x: 0, y: 0 }, shadowOpacity: 0.6 }
+		: { shadowColor: shadowNormal, shadowBlur: 3, shadowOffset: { x: 1, y: 1 }, shadowOpacity: 0.3 };
 
 	// Position
 	$: x = node.x || 0;
@@ -258,7 +267,7 @@
 			x: padding + iconSize / 2,
 			y: nodeHeight / 2,
 			radius: iconSize / 2 + 2,
-			fill: 'rgba(255, 255, 255, 0.2)'
+			fill: getCSSVariable('--background-modifier-hover') || 'rgba(255, 255, 255, 0.2)'
 		}}
 	/>
 	

@@ -155,6 +155,11 @@
 		const nodeWidth = 120;
 		const nodeHeight = 40;
 		
+		// Get theme-aware stroke color
+		const strokeColor = getComputedStyle(document.documentElement)
+			.getPropertyValue('--text-muted')
+			.trim() || '#888888';
+		
 		for (const node of nodes) {
 			if (node.children && node.isExpanded) {
 				for (const child of node.children) {
@@ -167,7 +172,7 @@
 						
 						lines.push({
 							points: [parentCenterX, parentBottomY, childCenterX, childTopY],
-							stroke: '#ffffff',
+							stroke: strokeColor,
 							strokeWidth: 2
 						});
 					}
