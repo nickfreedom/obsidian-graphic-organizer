@@ -142,7 +142,6 @@ pnpm run build
 │   ├── FileIconService.ts          # File type icons
 │   ├── FileOperationsService.ts    # File operations
 │   ├── CoordinateService.ts        # Node positioning
-│   ├── AccessibleColorService.ts   # Color management
 │   └── SvgIconService.ts           # SVG icon utilities
 ├── types/                           # TypeScript definitions
 │   ├── TreeNode.ts                 # Tree node types

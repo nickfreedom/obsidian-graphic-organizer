@@ -1,0 +1,6 @@
+---
+description: Ensures agents check Obsidian Plugin Guidelines when making changes
+globs:
+alwaysApply: true
+---
+Always check the Obsidian Plugin Guidelines at https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines before making any changes to the codebase to ensure compliance with best practices and requirements.

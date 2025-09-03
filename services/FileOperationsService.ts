@@ -107,7 +107,7 @@ This is a base (database) file. You can add entries and manage data here.
 				return;
 			}
 
-			await this.app.vault.delete(abstractFile);
+			await this.app.fileManager.trashFile(abstractFile);
 			new Notice(`Deleted: ${abstractFile.name}`);
 		} catch (error) {
 			new Notice(`Failed to delete item: ${error.message}`);
@@ -255,9 +255,10 @@ class NamePromptModal extends Modal {
 						const error = this.validator(value);
 						if (error) {
 							errorEl.textContent = error;
-							errorEl.style.color = 'var(--text-error)';
+							errorEl.className = 'setting-item-description modal-error-text';
 						} else {
 							errorEl.textContent = '';
+							errorEl.className = 'setting-item-description';
 						}
 					});
 
@@ -273,8 +274,7 @@ class NamePromptModal extends Modal {
 
 		// Buttons
 		const buttonContainer = contentEl.createEl('div', { 
-			cls: 'modal-button-container',
-			attr: { style: 'display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;' }
+			cls: 'modal-button-container'
 		});
 
 		const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
@@ -292,7 +292,7 @@ class NamePromptModal extends Modal {
 			const error = this.validator(value);
 			if (error) {
 				errorEl.textContent = error;
-				errorEl.style.color = 'var(--text-error)';
+				errorEl.className = 'setting-item-description modal-error-text';
 				return;
 			}
 			this.result = value;
@@ -343,13 +343,11 @@ class ConfirmationModal extends Modal {
 		contentEl.createEl('p', { text: this.message });
 		contentEl.createEl('p', { 
 			text: this.warning, 
-			cls: 'setting-item-description',
-			attr: { style: 'color: var(--text-muted); font-style: italic;' }
+			cls: 'setting-item-description modal-warning-text'
 		});
 
 		const buttonContainer = contentEl.createEl('div', { 
-			cls: 'modal-button-container',
-			attr: { style: 'display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;' }
+			cls: 'modal-button-container'
 		});
 
 		const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });

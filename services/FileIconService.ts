@@ -26,40 +26,8 @@ export class FileIconService {
 
 	// Icon methods removed - now using SvgIconService
 
-	public getFileColor(extension: string): string {
-		const fileType = this.getFileType(extension);
-		const config = FILE_TYPE_CONFIGS.find(c => c.type === fileType);
-		return config ? config.color : FILE_TYPE_CONFIGS.find(c => c.type === FileType.GENERIC)!.color;
-	}
-
-	/**
-	 * Get a theme-aware color for generic files/folders when we want them to blend with the theme
-	 */
-	public getThemeAwareColor(): string {
-		return getComputedStyle(document.documentElement)
-			.getPropertyValue('--text-muted')
-			.trim() || '#a4b0be';
-	}
-
-	// Folder icons now handled by SvgIconService
-
-	public getFolderColor(): string {
-		// Use a more theme-aware approach for folder colors
-		const accentColor = getComputedStyle(document.documentElement)
-			.getPropertyValue('--interactive-accent')
-			.trim();
-		
-		return accentColor || FILE_TYPE_CONFIGS.find(c => c.type === FileType.FOLDER)!.color;
-	}
-
-	// Warning icons now handled by SvgIconService
-
-	public getWarningColor(): string {
-		// Use Obsidian's CSS variable for error color if available
-		return getComputedStyle(document.documentElement)
-			.getPropertyValue('--text-error')
-			.trim() || '#ff6b6b';
-	}
+	// All color methods removed - colors now handled via CSS variables
+	// This eliminates hardcoded colors and JavaScript-based color detection
 
 	// Method to easily extend file type support
 	public addFileType(config: FileTypeConfig): void {

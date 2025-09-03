@@ -129,8 +129,10 @@ export class VaultHierarchyService {
 	}
 
 	private async loadFolderChildren(folderNode: TreeNode, checkThreshold: boolean = true): Promise<void> {
-		const folder = this.app.vault.getAbstractFileByPath(folderNode.path) as TFolder;
-		if (!folder) return;
+		const abstractFile = this.app.vault.getAbstractFileByPath(folderNode.path);
+		if (!abstractFile || !(abstractFile instanceof TFolder)) return;
+		
+		const folder = abstractFile;
 
 		const children = folder.children;
 		
@@ -154,8 +156,11 @@ export class VaultHierarchyService {
 			
 			if (child instanceof TFolder) {
 				childNode = this.createNodeFromFolder(child, folderNode, this.getNodeDepth(folderNode) + 1);
+			} else if (child instanceof TFile) {
+				childNode = this.createNodeFromFile(child, folderNode, this.getNodeDepth(folderNode) + 1);
 			} else {
-				childNode = this.createNodeFromFile(child as TFile, folderNode, this.getNodeDepth(folderNode) + 1);
+				// Skip unknown file types
+				continue;
 			}
 
 			folderNode.children.push(childNode);
@@ -191,8 +196,8 @@ export class VaultHierarchyService {
 		if (node.type === 'folder' && node.isExpanded) {
 			// Load children if not already loaded
 			if (!node.isLoaded) {
-				const folder = this.app.vault.getAbstractFileByPath(node.path) as TFolder;
-				if (folder) {
+				const abstractFile = this.app.vault.getAbstractFileByPath(node.path);
+				if (abstractFile && abstractFile instanceof TFolder) {
 					await this.loadFolderChildren(node, true); // Check threshold
 					node.isLoaded = true;
 				}

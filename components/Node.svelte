@@ -50,40 +50,60 @@
 		? SvgIconService.getFolderIconData(node.isExpanded || false)
 		: SvgIconService.getIconData(fileIconService.getFileType(node.fileType || ''));
 	
-	// Simplified color logic - just folder vs file
-	$: colorType = isFolder ? 'folder' : 'file';
-	$: color = getCSSVariable(`--node-color-${colorType}`) || getDefaultColor(isFolder);
-	
-	// Use Obsidian's text color for all text elements - automatically theme-aware
-	$: unifiedTextColor = getCSSVariable('--text-normal') || '#ffffff';
-	
-	// Fallback colors if CSS variables don't work
-	function getDefaultColor(isFolder: boolean): string {
-		return isFolder ? '#d97706' : '#1e40af'; // Amber for folders, blue for files
+	// Function to get resolved CSS custom property values for Konva
+	// This is needed because Konva requires actual color values, not CSS variables
+	function getCSSVariableValue(varName: string, fallback: string = '#000000'): string {
+		if (typeof window === 'undefined' || !document.documentElement) return fallback;
+		
+		// Get the computed value from the document root
+		const value = getComputedStyle(document.documentElement)
+			.getPropertyValue(varName)
+			.trim();
+		
+		// Return the resolved value or fallback
+		return value || fallback;
 	}
 	
-	// Get CSS variables for theme-aware colors
-	function getCSSVariable(varName: string): string {
-		return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-	}
+	// Determine CSS classes for styling
+	$: nodeClass = isFolder ? 'node-folder' : 'node-file';
+	$: additionalClasses = [
+		isValidDropTarget ? 'node-drop-target' : '',
+		(isFolder && node.hasWarning) ? 'node-warning' : ''
+	].filter(Boolean).join(' ');
 	
-	// Use theme-consistent colors for all elements
-	$: accentColor = getCSSVariable('--interactive-accent') || '#00ff00';
-	$: accentHover = getCSSVariable('--interactive-accent-hover') || '#004400';
-	$: shadowNormal = getCSSVariable('--shadow-color') || 'rgba(0, 0, 0, 0.3)';
-	
-	$: strokeColor = isValidDropTarget 
-		? accentColor
-		: (isFolder && node.hasWarning ? fileIconService.getWarningColor() : color);
+	// Stroke width still needs to be dynamic for visual feedback
 	$: strokeWidth = isValidDropTarget 
 		? 4 
 		: (isFolder && node.hasWarning ? 2 : 1);
+		
+	// Resolve CSS custom properties to actual values for Konva
 	$: backgroundColor = isValidDropTarget 
-		? accentHover
-		: color;
+		? getCSSVariableValue('--interactive-accent-hover', '#004400')
+		: (isFolder 
+			? getCSSVariableValue('--node-color-folder', '#d97706') 
+			: getCSSVariableValue('--node-color-file', '#1e40af'));
+			
+	$: strokeColor = isValidDropTarget 
+		? getCSSVariableValue('--interactive-accent', '#00ff00')
+		: (isFolder && node.hasWarning 
+			? getCSSVariableValue('--text-error', '#ff6b6b')
+			: (isFolder 
+				? getCSSVariableValue('--node-color-folder', '#d97706') 
+				: getCSSVariableValue('--node-color-file', '#1e40af')));
+				
 	$: shadowConfig = isValidDropTarget 
-		? { shadowColor: accentColor, shadowBlur: 8, shadowOffset: { x: 0, y: 0 }, shadowOpacity: 0.6 }
-		: { shadowColor: shadowNormal, shadowBlur: 3, shadowOffset: { x: 1, y: 1 }, shadowOpacity: 0.3 };
+		? { 
+			shadowColor: getCSSVariableValue('--interactive-accent', '#00ff00'), 
+			shadowBlur: 8, 
+			shadowOffset: { x: 0, y: 0 }, 
+			shadowOpacity: 0.6 
+		}
+		: { 
+			shadowColor: getCSSVariableValue('--shadow-color', 'rgba(0, 0, 0, 0.3)'), 
+			shadowBlur: 3, 
+			shadowOffset: { x: 1, y: 1 }, 
+			shadowOpacity: 0.3 
+		};
 
 	// Position
 	$: x = node.x || 0;
@@ -307,8 +327,10 @@
 			x: padding + iconSize / 2,
 			y: nodeHeight / 2,
 			radius: iconSize / 2 + 2,
-			fill: color,
-			stroke: unifiedTextColor,
+			fill: isFolder 
+				? getCSSVariableValue('--node-color-folder', '#d97706') 
+				: getCSSVariableValue('--node-color-file', '#1e40af'),
+			stroke: getCSSVariableValue('--text-normal', '#ffffff'),
 			strokeWidth: 0.5,
 			opacity: 0.8
 		}}
@@ -320,7 +342,7 @@
 			x: padding + iconSize / 2 - 6, // Center the 12px icon in the 16px space
 			y: nodeHeight / 2 - 6,
 			data: iconData.path,
-			fill: unifiedTextColor,
+			fill: getCSSVariableValue('--text-normal', '#ffffff'),
 			scaleX: 0.5, // Scale down from 24x24 to 12x12
 			scaleY: 0.5
 		}}
@@ -334,7 +356,7 @@
 			width: nodeWidth - (padding * 3 + iconSize),
 			text: displayText,
 			fontSize: 12,
-			fill: unifiedTextColor,
+			fill: getCSSVariableValue('--text-normal', '#ffffff'),
 			fontFamily: 'var(--font-interface)',
 			align: 'left',
 			verticalAlign: 'middle'
@@ -348,7 +370,7 @@
 				x: nodeWidth - padding - 12,
 				y: padding,
 				data: SvgIconService.getWarningIconData().path,
-				fill: fileIconService.getWarningColor(),
+				fill: getCSSVariableValue('--text-error', '#ff6b6b'),
 				scaleX: 0.5,
 				scaleY: 0.5
 			}}
@@ -364,7 +386,7 @@
 				data: node.isExpanded 
 					? 'M19 13H5v-2h14v2z' // Minus icon
 					: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z', // Plus icon
-				fill: unifiedTextColor,
+				fill: getCSSVariableValue('--text-normal', '#ffffff'),
 				scaleX: 0.33,
 				scaleY: 0.33
 			}}
@@ -381,22 +403,3 @@
 		{node.name}
 	</div>
 {/if}
-
-<style>
-	.node-tooltip {
-		position: fixed;
-		background: var(--background-primary);
-		color: var(--text-normal);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 4px;
-		padding: 4px 8px;
-		font-size: 12px;
-		font-family: var(--font-interface);
-		white-space: nowrap;
-		z-index: 10001;
-		pointer-events: none;
-		box-shadow: var(--shadow-s);
-		transform: translateX(-50%); /* Center horizontally */
-		max-width: 300px;
-	}
-</style>

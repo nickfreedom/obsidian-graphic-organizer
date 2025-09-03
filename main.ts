@@ -16,14 +16,14 @@ export default class GraphicOrganizerPlugin extends Plugin {
 		);
 
 		// Add ribbon icon to activate the view
-		this.addRibbonIcon('network', 'Open Graphic Organizer', () => {
+		this.addRibbonIcon('network', 'Open visual hierarchy', () => {
 			this.activateView();
 		});
 
 		// Add command to activate the view
 		this.addCommand({
 			id: 'open-graphic-organizer',
-			name: 'Open Graphic Organizer',
+			name: 'Open visual hierarchy',
 			callback: () => {
 				this.activateView();
 			}
@@ -34,8 +34,8 @@ export default class GraphicOrganizerPlugin extends Plugin {
 	}
 
 	onunload() {
-		// Clean up any leaves of our view type
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_GRAPHIC_ORGANIZER);
+		// Plugin cleanup - avoid detaching leaves as it's an antipattern
+		// Obsidian will handle view cleanup automatically
 	}
 
 	async activateView() {

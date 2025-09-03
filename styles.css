@@ -1,18 +1,6 @@
-/* Simplified color variables - just folders and files */
-:root {
-  /* Dark theme colors (for white text) */
-  --node-color-folder: #d97706;   /* Amber for folders */
-  --node-color-file: #1e40af;     /* Blue for files */
-}
-
-.theme-light {
-  /* Light theme colors (for black text) */
-  --node-color-folder: #fde047;   /* Light yellow for folders */
-  --node-color-file: #93c5fd;     /* Light blue for files */
-}
-
-/* Main plugin styles */
+/* Plugin-scoped styles - NEVER affect global Obsidian UI */
 .graphic-organizer-container {
+  /* Layout properties */
   width: 100%;
   height: 100%;
   position: relative;
@@ -20,6 +8,34 @@
   color: var(--text-normal);
   overflow: hidden;
   border: 1px solid var(--background-modifier-border);
+  
+  /* Default (dark theme) colors */
+  --node-color-folder: #d97706;     /* Amber for folders */
+  --node-color-file: #1e40af;       /* Blue for files */
+  --node-color-markdown: #1e40af;   /* Dark blue */
+  --node-color-image: #dc2626;      /* Dark red */
+  --node-color-pdf: #b91c1c;        /* Darker red */
+  --node-color-video: #7c2d12;      /* Dark orange-red */
+  --node-color-audio: #166534;      /* Dark green */
+  --node-color-code: #581c87;       /* Dark purple */
+  --node-color-canvas: #be185d;     /* Dark pink */
+  --node-color-generic: #6b7280;    /* Neutral gray */
+  --node-color-base: #0f766e;       /* Dark teal */
+}
+
+/* Light theme overrides - scoped to plugin container */
+.theme-light .graphic-organizer-container {
+  --node-color-folder: #fde047;     /* Light yellow for folders */
+  --node-color-file: #93c5fd;       /* Light blue for files */
+  --node-color-markdown: #93c5fd;   /* Light blue */
+  --node-color-image: #fca5a5;      /* Light red */
+  --node-color-pdf: #fbb6ce;        /* Light pink */
+  --node-color-video: #fed7aa;      /* Light orange */
+  --node-color-audio: #86efac;      /* Light green */
+  --node-color-code: #c4b5fd;       /* Light purple */
+  --node-color-canvas: #f9a8d4;     /* Light pink */
+  --node-color-generic: #d1d5db;    /* Light gray */
+  --node-color-base: #5eead4;       /* Light teal */
 }
 
 /* Ensure the view takes full available space */
@@ -32,9 +48,6 @@
   padding: 0;
 }
 
-/* Context menu styles are in the component file */
-
-/* Modal styles are in the component files */
 
 /* Override default Konva canvas styles */
 .graphic-organizer-container canvas {
@@ -42,13 +55,13 @@
   touch-action: none;
 }
 
-/* Utility classes */
-.mod-warning {
+/* Scoped utility classes for plugin only */
+.graphic-organizer-container .mod-warning {
   background: var(--background-modifier-error) !important;
   color: var(--text-on-accent) !important;
 }
 
-.mod-cta {
+.graphic-organizer-container .mod-cta {
   background: var(--interactive-accent) !important;
   color: var(--text-on-accent) !important;
 }
@@ -62,7 +75,8 @@
   z-index: 10000;
 }
 
-.modal-backdrop {
+/* Modal backdrop should be scoped to plugin modals only */
+.graphic-organizer-container .modal-backdrop {
   z-index: 10000;
 }
 
@@ -108,4 +122,277 @@
 
 .graphic-organizer-container ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-bg-hover);
+}
+
+/* Modal styles - scoped to plugin */
+.graphic-organizer-container .modal-error-text {
+  color: var(--text-error);
+}
+
+.graphic-organizer-container .modal-warning-text {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.graphic-organizer-container .modal-button-container {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* Component styles */
+
+/* Node.svelte styles - scoped to plugin */
+.graphic-organizer-container .node-tooltip {
+  position: fixed;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: var(--font-interface);
+  white-space: nowrap;
+  z-index: 10001;
+  pointer-events: none;
+  box-shadow: var(--shadow-s);
+  transform: translateX(-50%); /* Center horizontally */
+  max-width: 300px;
+}
+
+/* Node color classes for theme-aware styling - scoped to plugin */
+.graphic-organizer-container .node-folder {
+  fill: var(--node-color-folder);
+  stroke: var(--node-color-folder);
+}
+
+.graphic-organizer-container .node-file {
+  fill: var(--node-color-file);
+  stroke: var(--node-color-file);
+}
+
+.graphic-organizer-container .node-text {
+  fill: var(--text-normal);
+}
+
+.graphic-organizer-container .node-drop-target {
+  stroke: var(--interactive-accent);
+  stroke-width: 4;
+}
+
+.graphic-organizer-container .node-warning {
+  stroke: var(--text-error);
+}
+
+/* TreeCanvas.svelte styles - scoped to plugin */
+.graphic-organizer-container .tree-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+/* Connection line colors for tree canvas - scoped to plugin */
+.graphic-organizer-container .tree-connection-line {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  fill: none;
+}
+
+/* ContextMenu.svelte styles - scoped to plugin */
+.graphic-organizer-container .context-menu {
+  position: fixed;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-l);
+  padding: 4px 0;
+  min-width: 160px;
+  max-width: 240px;
+  z-index: 10000;
+  font-size: 13px;
+}
+
+.graphic-organizer-container .menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.graphic-organizer-container .menu-item:hover:not(.disabled) {
+  background: var(--background-modifier-hover);
+}
+
+.graphic-organizer-container .menu-item.destructive {
+  color: var(--text-error);
+}
+
+.graphic-organizer-container .menu-item.destructive:hover {
+  background: var(--background-modifier-error-hover);
+}
+
+.graphic-organizer-container .menu-icon {
+  margin-right: 8px;
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.graphic-organizer-container .menu-label {
+  flex: 1;
+  font-weight: 400;
+}
+
+.graphic-organizer-container .menu-separator {
+  height: 1px;
+  background: var(--background-modifier-border);
+  margin: 4px 8px;
+}
+
+/* ZoomControls.svelte styles - scoped to plugin */
+.graphic-organizer-container .zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: var(--shadow-s);
+  z-index: 1000;
+}
+
+.graphic-organizer-container .zoom-display {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  min-width: 40px;
+}
+
+.graphic-organizer-container .zoom-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.graphic-organizer-container .zoom-button:hover {
+  background: var(--interactive-hover);
+}
+
+.graphic-organizer-container .zoom-button:active {
+  background: var(--interactive-active);
+}
+
+.graphic-organizer-container .zoom-button svg {
+  pointer-events: none;
+}
+
+/* LargeFolderWarningModal.svelte styles - scoped to plugin */
+.graphic-organizer-container .modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--background-modifier-cover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.graphic-organizer-container .modal-container {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-l);
+  min-width: 400px;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.graphic-organizer-container .modal-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.graphic-organizer-container .modal-header h3 {
+  margin: 0;
+  color: var(--text-error);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.graphic-organizer-container .modal-content {
+  padding: 16px 20px;
+  color: var(--text-normal);
+  line-height: 1.5;
+}
+
+.graphic-organizer-container .modal-content p {
+  margin: 0 0 12px 0;
+}
+
+.graphic-organizer-container .modal-content p:last-child {
+  margin-bottom: 0;
+}
+
+.graphic-organizer-container .warning-text {
+  color: var(--text-warning);
+  font-weight: 500;
+}
+
+.graphic-organizer-container .modal-footer {
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--background-modifier-border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.graphic-organizer-container .modal-button {
+  padding: 8px 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--interactive-normal);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.1s ease;
+}
+
+.graphic-organizer-container .modal-button:hover {
+  background: var(--interactive-hover);
+}
+
+.graphic-organizer-container .modal-button.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.graphic-organizer-container .modal-button.mod-cta:hover {
+  background: var(--interactive-accent-hover);
 }

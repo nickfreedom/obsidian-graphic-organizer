@@ -155,7 +155,7 @@
 		const nodeWidth = 150; // Increased by 25% from 120px
 		const nodeHeight = 40;
 		
-		// Get theme-aware stroke color
+		// Get resolved CSS variable value for Konva
 		const strokeColor = getComputedStyle(document.documentElement)
 			.getPropertyValue('--text-muted')
 			.trim() || '#888888';
@@ -559,12 +559,3 @@
 	{/if}
 </div>
 
-<style>
-	.tree-canvas-container {
-		position: relative;
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-		background: var(--background-primary);
-	}
-</style>
