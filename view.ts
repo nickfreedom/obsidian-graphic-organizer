@@ -25,7 +25,7 @@ export class GraphicOrganizerView extends ItemView {
 		return 'network';
 	}
 
-	onOpen() {
+	async onOpen() {
 		const container = this.containerEl.children[1];
 		container.empty();
 		
@@ -45,7 +45,7 @@ export class GraphicOrganizerView extends ItemView {
 		});
 	}
 
-	onClose() {
+	async onClose() {
 		// Clean up the Svelte component
 		if (this.component) {
 			this.component.$destroy();
