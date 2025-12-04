@@ -50,7 +50,7 @@ export class FileOperationsService {
 
 		try {
 			// Create empty canvas file with basic structure
-			const canvasData: { nodes: any[]; edges: any[] } = {
+			const canvasData: { nodes: unknown[]; edges: unknown[] } = {
 				nodes: [],
 				edges: []
 			};
@@ -115,7 +115,7 @@ This is a base (database) file. You can add entries and manage data here.
 		}
 	}
 
-	async revealInExplorer(itemPath: string): Promise<void> {
+	revealInExplorer(itemPath: string): void {
 		try {
 			const abstractFile = this.app.vault.getAbstractFileByPath(itemPath);
 			if (!abstractFile) {
@@ -162,7 +162,7 @@ This is a base (database) file. You can add entries and manage data here.
 		return `${parentPath}/${childName}`;
 	}
 
-	private validateFileName(name: string): string | null {
+	private validateFileName = (name: string): string | null => {
 		if (!name || name.trim() === '') {
 			return 'Name cannot be empty';
 		}
@@ -180,7 +180,7 @@ This is a base (database) file. You can add entries and manage data here.
 		}
 
 		return null;
-	}
+	};
 
 	private promptForName(title: string, placeholder: string, defaultValue: string): Promise<string | null> {
 		return new Promise((resolve) => {

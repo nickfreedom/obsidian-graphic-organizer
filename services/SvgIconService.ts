@@ -50,11 +50,12 @@ export class SvgIconService {
     }]
   ]);
 
-  static getIconData(fileType: FileType): SvgIconData {
-    return this.icons.get(fileType) || this.icons.get(FileType.GENERIC)!;
-  }
-
-  static getFolderIconData(isOpen: boolean): SvgIconData {
+	static getIconData(fileType: FileType): SvgIconData {
+		return this.icons.get(fileType) ?? this.icons.get(FileType.GENERIC) ?? {
+			path: 'M12 2l3 3h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8zm-1 2H5v16h14V6h-4V4H11z',
+			viewBox: '0 0 24 24'
+		};
+	}  static getFolderIconData(isOpen: boolean): SvgIconData {
     if (isOpen) {
       return {
         path: 'M3 5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.664.89L12.07 6H19a2 2 0 0 1 2 2v1H3V5zm0 4v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9H3z',

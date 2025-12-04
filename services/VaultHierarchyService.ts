@@ -128,7 +128,7 @@ export class VaultHierarchyService {
 		};
 	}
 
-	private async loadFolderChildren(folderNode: TreeNode, checkThreshold: boolean = true): Promise<void> {
+	private loadFolderChildren(folderNode: TreeNode, checkThreshold: boolean = true): void {
 		const abstractFile = this.app.vault.getAbstractFileByPath(folderNode.path);
 		if (!abstractFile || !(abstractFile instanceof TFolder)) return;
 		
@@ -297,7 +297,7 @@ export class VaultHierarchyService {
 			const childY = y + levelHeight;
 			
 			// Use the node's actual center position (which is node.x + nodeWidth/2)
-			const actualParentCenterX = node.x! + nodeWidth / 2;
+			const actualParentCenterX = (node.x ?? 0) + nodeWidth / 2;
 			
 			// Calculate positions for children (returns left edge positions, not centers)
 			const childPositions = this.calculateChildPositions(node.children, actualParentCenterX, nodeWidth, minSpacing, subtreeSpacing);
@@ -400,7 +400,6 @@ export class VaultHierarchyService {
 				// Add extra spacing if nodes have different parents
 				if (currentNode.parent !== previousNode.parent) {
 					adjustments.push(extraSpacing);
-					totalAdjustment += extraSpacing;
 				} else {
 					adjustments.push(0);
 				}
@@ -413,7 +412,9 @@ export class VaultHierarchyService {
 			cumulativeAdjustment += adjustments[i];
 			if (cumulativeAdjustment > 0) {
 				const adjustment = cumulativeAdjustment;
-				nodes[i].x! += adjustment;
+				if (nodes[i].x !== undefined) {
+					nodes[i].x = (nodes[i].x ?? 0) + adjustment;
+				}
 				
 				// Recursively adjust all descendants of this node
 				this.adjustDescendantsPosition(nodes[i], adjustment);
@@ -445,7 +446,7 @@ export class VaultHierarchyService {
 			const nodeWidth = 150; // Increased by 25% from 120px
 			const childCenters = parent.children
 				.filter(child => child.x !== undefined)
-				.map(child => child.x! + nodeWidth / 2); // Get the center of each child node
+				.map(child => (child.x ?? 0) + nodeWidth / 2); // Get the center of each child node
 
 			if (childCenters.length === 0) {
 				continue;
@@ -588,9 +589,6 @@ export class VaultHierarchyService {
 	}
 
 	private debugFinalPositions(): void {
-		const testFolder2 = this.findNodeByName('Test Folder 2');
-		const canvas2 = this.findNodeByName('Canvas 2.canvas');
-		
 		// Debug positions removed
 	}
 	
@@ -604,7 +602,7 @@ export class VaultHierarchyService {
 	}
 
 	public refreshTree(): void {
-		this.buildInitialTree().then(() => {
+		void this.buildInitialTree().then(() => {
 			this.notifyListeners();
 		});
 	}

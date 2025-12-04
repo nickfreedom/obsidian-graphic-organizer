@@ -1,6 +1,6 @@
 {
   "name": "obsidian-graphic-organizer",
-  "version": "1.0.0",
+  "version": "0.1.4",
   "description": "A graphic organizer plugin for Obsidian that provides an interactive tree view of your vault's hierarchy",
   "main": "main.js",
   "scripts": {
