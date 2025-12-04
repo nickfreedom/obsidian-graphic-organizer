@@ -14,10 +14,6 @@ export class SettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Graphic organizer settings')
-			.setHeading();
-
 		// Performance Settings
 		new Setting(containerEl)
 			.setName('Performance')

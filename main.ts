@@ -56,7 +56,9 @@ export default class GraphicOrganizerPlugin extends Plugin {
 		}
 
 		// Reveal the leaf
-		workspace.revealLeaf(leaf);
+		if (leaf) {
+			workspace.revealLeaf(leaf);
+		}
 	}
 
 	async loadSettings() {
