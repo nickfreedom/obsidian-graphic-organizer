@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { GraphicOrganizerView, VIEW_TYPE_GRAPHIC_ORGANIZER } from './view';
 import { PluginSettings, DEFAULT_SETTINGS } from './types/PluginSettings';
 import { SettingsTab } from './settings';
@@ -17,15 +17,15 @@ export default class GraphicOrganizerPlugin extends Plugin {
 
 		// Add ribbon icon to activate the view
 		this.addRibbonIcon('network', 'Open visual hierarchy', () => {
-			this.activateView();
+			void this.activateView();
 		});
 
 		// Add command to activate the view
 		this.addCommand({
-			id: 'open-graphic-organizer',
+			id: 'open-view',
 			name: 'Open visual hierarchy',
 			callback: () => {
-				this.activateView();
+				void this.activateView();
 			}
 		});
 
@@ -47,10 +47,12 @@ export default class GraphicOrganizerPlugin extends Plugin {
 		if (!leaf) {
 			// Create new leaf in right sidebar
 			leaf = workspace.getRightLeaf(false);
-			await leaf.setViewState({
-				type: VIEW_TYPE_GRAPHIC_ORGANIZER,
-				active: true,
-			});
+			if (leaf) {
+				await leaf.setViewState({
+					type: VIEW_TYPE_GRAPHIC_ORGANIZER,
+					active: true,
+				});
+			}
 		}
 
 		// Reveal the leaf

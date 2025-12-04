@@ -18,14 +18,14 @@ export class GraphicOrganizerView extends ItemView {
 	}
 
 	getDisplayText() {
-		return 'Graphic Organizer';
+		return 'Graphic organizer';
 	}
 
 	getIcon() {
 		return 'network';
 	}
 
-	async onOpen() {
+	onOpen() {
 		const container = this.containerEl.children[1];
 		container.empty();
 		
@@ -45,7 +45,7 @@ export class GraphicOrganizerView extends ItemView {
 		});
 	}
 
-	async onClose() {
+	onClose() {
 		// Clean up the Svelte component
 		if (this.component) {
 			this.component.$destroy();

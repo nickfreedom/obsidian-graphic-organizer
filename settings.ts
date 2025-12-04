@@ -14,10 +14,14 @@ export class SettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Graphic Organizer Settings' });
+		new Setting(containerEl)
+			.setName('Graphic organizer settings')
+			.setHeading();
 
 		// Performance Settings
-		containerEl.createEl('h3', { text: 'Performance' });
+		new Setting(containerEl)
+			.setName('Performance')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('Large folder threshold')
@@ -32,7 +36,9 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		// Animation Settings
-		containerEl.createEl('h3', { text: 'Animations' });
+		new Setting(containerEl)
+			.setName('Animations')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('Smooth animations')
@@ -57,7 +63,9 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		// Zoom Settings
-		containerEl.createEl('h3', { text: 'Zoom & Navigation' });
+		new Setting(containerEl)
+			.setName('Zoom and navigation')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('Zoom sensitivity')
@@ -96,7 +104,9 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		// Layout Settings
-		containerEl.createEl('h3', { text: 'Layout' });
+		new Setting(containerEl)
+			.setName('Layout')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('Horizontal spacing')
@@ -123,13 +133,15 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		// Reset Settings
-		containerEl.createEl('h3', { text: 'Reset' });
+		new Setting(containerEl)
+			.setName('Reset')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('Reset to defaults')
 			.setDesc('Reset all settings to their default values')
 			.addButton(button => button
-				.setButtonText('Reset Settings')
+				.setButtonText('Reset settings')
 				.setWarning()
 				.onClick(async () => {
 					// Reset to defaults

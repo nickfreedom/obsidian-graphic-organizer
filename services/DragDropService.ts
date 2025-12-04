@@ -1,4 +1,4 @@
-import { App, TFolder } from 'obsidian';
+import { App } from 'obsidian';
 import { TreeNode } from '../types/TreeNode';
 import type GraphicOrganizerPlugin from '../main';
 
@@ -112,7 +112,7 @@ export class DragDropService {
 			const newPath = this.generateNewPath(node, newParent);
 			
 			// Perform the actual file/folder move
-			this.app.fileManager.renameFile(abstractFile, newPath);
+			void this.app.fileManager.renameFile(abstractFile, newPath);
 			
 			return true;
 		} catch (error) {
