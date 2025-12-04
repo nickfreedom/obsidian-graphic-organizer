@@ -198,7 +198,7 @@ export class VaultHierarchyService {
 			if (!node.isLoaded) {
 				const abstractFile = this.app.vault.getAbstractFileByPath(node.path);
 				if (abstractFile && abstractFile instanceof TFolder) {
-					await this.loadFolderChildren(node, true); // Check threshold
+					this.loadFolderChildren(node, true); // Check threshold
 					node.isLoaded = true;
 				}
 			}
@@ -387,7 +387,6 @@ export class VaultHierarchyService {
 
 	private adjustSpacingForLevel(nodes: TreeNode[], extraSpacing: number): void {
 		// Calculate how much extra space to add between nodes from different parents
-		let totalAdjustment = 0;
 		const adjustments: number[] = [];
 
 		for (let i = 0; i < nodes.length; i++) {
