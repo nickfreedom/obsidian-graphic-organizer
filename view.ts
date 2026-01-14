@@ -25,10 +25,10 @@ export class GraphicOrganizerView extends ItemView {
 		return 'network';
 	}
 
-	async onOpen() {
+	onOpen(): Promise<void> {
 		const container = this.containerEl.children[1];
 		container.empty();
-		
+
 		// Create wrapper div for the Svelte component
 		const wrapper = container.createEl('div', {
 			cls: 'graphic-organizer-container'
@@ -43,12 +43,14 @@ export class GraphicOrganizerView extends ItemView {
 				view: this
 			}
 		});
+		return Promise.resolve();
 	}
 
-	async onClose() {
+	onClose(): Promise<void> {
 		// Clean up the Svelte component
 		if (this.component) {
 			this.component.$destroy();
 		}
+		return Promise.resolve();
 	}
 }
