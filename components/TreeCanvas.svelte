@@ -5,7 +5,7 @@
 	import { App } from 'obsidian';
 	import type GraphicOrganizerPlugin from '../main';
 	import type { GraphicOrganizerView } from '../view';
-	import { VaultHierarchyService } from '../services/VaultHierarchyService';
+	import type { VaultHierarchyService } from '../services/VaultHierarchyService';
 	import { DragDropService } from '../services/DragDropService';
 	import { TreeNode, TreeLayout } from '../types/TreeNode';
 	import Node from './Node.svelte';
@@ -28,9 +28,9 @@
 	export let app: App;
 	export let plugin: GraphicOrganizerPlugin;
 	export let view: GraphicOrganizerView;
+	export let hierarchyService: VaultHierarchyService;
 
 	// Services
-	let hierarchyService: VaultHierarchyService;
 	let dragDropService: DragDropService;
 
 	// State
@@ -65,8 +65,7 @@
 	Konva.dragDistance = 5; // Threshold for distinguishing click from drag
 
 	onMount(async () => {
-		// Initialize services
-		hierarchyService = new VaultHierarchyService(app, plugin);
+		// Initialize drag drop service
 		dragDropService = new DragDropService(app, plugin);
 
 		// Set up hierarchy service listener
@@ -89,10 +88,9 @@
 	});
 
 	onDestroy(() => {
-		if (hierarchyService) {
-			hierarchyService.removeListener(onTreeLayoutChange);
-			hierarchyService.destroy();
-		}
+		// Remove our listener from the hierarchy service
+		// Note: The service itself is cleaned up by the view via addChild()
+		hierarchyService.removeListener(onTreeLayoutChange);
 		window.removeEventListener('resize', updateDimensions);
 	});
 
@@ -269,23 +267,34 @@
 			// Encode the node ID to match what's used in the Node component
 			const encodedId = `node-${toCssId(node.id)}`;
 			const konvaNode = layer.findOne(`#${encodedId}`);
-			
+
 			if (konvaNode) {
-				// Create a subtle bounce effect for better visual feedback
-				const tween = new Konva.Tween({
-					node: konvaNode,
-					duration: 0.4,
-					x: originalPosition.x,
-					y: originalPosition.y,
-					easing: Konva.Easings.BackEaseOut,
-					onFinish: () => {
-						// Ensure the node position is exactly restored
-						konvaNode.x(originalPosition.x);
-						konvaNode.y(originalPosition.y);
-						layer.batchDraw();
-					}
-				});
-				tween.play();
+				// Check if animations are enabled in settings
+				if (plugin.settings.enableSmoothAnimations) {
+					// Convert animation duration from milliseconds to seconds
+					const durationInSeconds = plugin.settings.animationDuration / 1000;
+
+					// Create a subtle bounce effect for better visual feedback
+					const tween = new Konva.Tween({
+						node: konvaNode,
+						duration: durationInSeconds,
+						x: originalPosition.x,
+						y: originalPosition.y,
+						easing: Konva.Easings.BackEaseOut,
+						onFinish: () => {
+							// Ensure the node position is exactly restored
+							konvaNode.x(originalPosition.x);
+							konvaNode.y(originalPosition.y);
+							layer.batchDraw();
+						}
+					});
+					tween.play();
+				} else {
+					// Instant snap without animation
+					konvaNode.x(originalPosition.x);
+					konvaNode.y(originalPosition.y);
+					layer.batchDraw();
+				}
 			}
 		}
 	}

@@ -1,9 +1,9 @@
-import { App, TAbstractFile, TFile, TFolder } from 'obsidian';
+import { App, Component, TAbstractFile, TFile, TFolder } from 'obsidian';
 import { TreeNode, TreeLayout } from '../types/TreeNode';
 import { FileIconService } from './FileIconService';
 import type GraphicOrganizerPlugin from '../main';
 
-export class VaultHierarchyService {
+export class VaultHierarchyService extends Component {
 	private app: App;
 	private plugin: GraphicOrganizerPlugin;
 	private fileIconService: FileIconService;
@@ -13,6 +13,7 @@ export class VaultHierarchyService {
 	private expandedFolders: Set<string> = new Set(); // Track expanded folders
 
 	constructor(app: App, plugin: GraphicOrganizerPlugin) {
+		super();
 		this.app = app;
 		this.plugin = plugin;
 		this.fileIconService = new FileIconService();
@@ -21,15 +22,20 @@ export class VaultHierarchyService {
 			levels: new Map(),
 			maxDepth: 0
 		};
-
-		this.setupVaultListeners();
 	}
 
-	private setupVaultListeners() {
-		// Listen for file/folder changes
-		this.app.vault.on('create', this.onFileCreate.bind(this));
-		this.app.vault.on('delete', this.onFileDelete.bind(this));
-		this.app.vault.on('rename', this.onFileRename.bind(this));
+	onload() {
+		// Register vault event listeners using Component's registerEvent
+		// This ensures proper cleanup when the component is unloaded
+		this.registerEvent(
+			this.app.vault.on('create', this.onFileCreate.bind(this))
+		);
+		this.registerEvent(
+			this.app.vault.on('delete', this.onFileDelete.bind(this))
+		);
+		this.registerEvent(
+			this.app.vault.on('rename', this.onFileRename.bind(this))
+		);
 	}
 
 	private onFileCreate(file: TAbstractFile) {
@@ -620,12 +626,10 @@ export class VaultHierarchyService {
 
 
 
-	public destroy(): void {
-		// Clean up listeners
-		this.app.vault.off('create', this.onFileCreate.bind(this));
-		this.app.vault.off('delete', this.onFileDelete.bind(this));
-		this.app.vault.off('rename', this.onFileRename.bind(this));
+	onunload() {
+		// Clear internal listeners
 		this.listeners.clear();
+		// Note: vault event listeners are automatically cleaned up by Component.unload()
 	}
 }
 

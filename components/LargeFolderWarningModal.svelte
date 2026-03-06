@@ -21,7 +21,7 @@
 <div class="modal-backdrop" on:click={handleCancel}>
 	<div class="modal-container" on:click|stopPropagation>
 		<div class="modal-header">
-			<h3>⚠️ Large Folder Warning</h3>
+			<h3>⚠️ Large folder warning</h3>
 		</div>
 		
 		<div class="modal-content">
@@ -45,7 +45,7 @@
 				Cancel
 			</button>
 			<button class="modal-button mod-cta" on:click={handleLoadAnyway}>
-				Load Anyway
+				Load anyway
 			</button>
 		</div>
 	</div>

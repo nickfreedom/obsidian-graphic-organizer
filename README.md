@@ -1,4 +1,4 @@
-# Obsidian Graphic Organizer Plugin
+# Graphic Organizer
 
 A visual, interactive tree view plugin for Obsidian that displays your vault's file and folder hierarchy in a graphical format with drag-and-drop functionality.
 

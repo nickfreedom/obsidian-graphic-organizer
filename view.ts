@@ -1,16 +1,23 @@
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import TreeCanvas from './components/TreeCanvas.svelte';
 import type GraphicOrganizerPlugin from './main';
+import { VaultHierarchyService } from './services/VaultHierarchyService';
 
 export const VIEW_TYPE_GRAPHIC_ORGANIZER = 'graphic-organizer-view';
 
 export class GraphicOrganizerView extends ItemView {
 	plugin: GraphicOrganizerPlugin;
 	component: TreeCanvas;
+	hierarchyService: VaultHierarchyService;
 
 	constructor(leaf: WorkspaceLeaf, plugin: GraphicOrganizerPlugin) {
 		super(leaf);
 		this.plugin = plugin;
+
+		// Create hierarchy service and add as child component
+		// This ensures proper event cleanup when the view is closed
+		this.hierarchyService = new VaultHierarchyService(this.app, plugin);
+		this.addChild(this.hierarchyService);
 	}
 
 	getViewType() {
@@ -40,7 +47,8 @@ export class GraphicOrganizerView extends ItemView {
 			props: {
 				app: this.app,
 				plugin: this.plugin,
-				view: this
+				view: this,
+				hierarchyService: this.hierarchyService
 			}
 		});
 		return Promise.resolve();

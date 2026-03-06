@@ -11,7 +11,7 @@ export class FileOperationsService {
 	}
 
 	async createNote(parentPath: string): Promise<void> {
-		const name = await this.promptForName('New Note', 'Enter note name:', 'Untitled Note');
+		const name = await this.promptForName('New note', 'Enter note name:', 'Untitled note');
 		if (!name) return;
 
 		const fileName = name.endsWith('.md') ? name : `${name}.md`;
@@ -27,7 +27,7 @@ export class FileOperationsService {
 	}
 
 	async createFolder(parentPath: string): Promise<void> {
-		const name = await this.promptForName('New Folder', 'Enter folder name:', 'New Folder');
+		const name = await this.promptForName('New folder', 'Enter folder name:', 'New folder');
 		if (!name) return;
 
 		const fullPath = this.joinPath(parentPath, name);
@@ -42,7 +42,7 @@ export class FileOperationsService {
 	}
 
 	async createCanvas(parentPath: string): Promise<void> {
-		const name = await this.promptForName('New Canvas', 'Enter canvas name:', 'Untitled Canvas');
+		const name = await this.promptForName('New canvas', 'Enter canvas name:', 'Untitled canvas');
 		if (!name) return;
 
 		const fileName = name.endsWith('.canvas') ? name : `${name}.canvas`;
@@ -63,7 +63,7 @@ export class FileOperationsService {
 	}
 
 	async createBase(parentPath: string): Promise<void> {
-		const name = await this.promptForName('New Base', 'Enter base name:', 'Untitled Base');
+		const name = await this.promptForName('New base', 'Enter base name:', 'Untitled base');
 		if (!name) return;
 
 		const fileName = name.endsWith('.md') ? name : `${name}.md`;
@@ -141,13 +141,13 @@ This is a base (database) file. You can add entries and manage data here.
 			}
 
 			const currentName = abstractFile.name;
-			const newName = await this.promptForName('Rename Item', 'Enter new name:', currentName);
+			const newName = await this.promptForName('Rename item', 'Enter new name:', currentName);
 			if (!newName || newName === currentName) return;
 
 			const parentPath = abstractFile.parent?.path || '';
 			const newPath = this.joinPath(parentPath, newName);
 
-			await this.app.vault.rename(abstractFile, newPath);
+			await this.app.fileManager.renameFile(abstractFile, newPath);
 			new Notice(`Renamed: ${currentName} → ${newName}`);
 		} catch (error) {
 			new Notice(`Failed to rename item: ${error.message}`);
@@ -200,7 +200,7 @@ This is a base (database) file. You can add entries and manage data here.
 		return new Promise((resolve) => {
 			const modal = new ConfirmationModal(
 				this.app,
-				'Confirm Deletion',
+				'Confirm deletion',
 				`Are you sure you want to delete "${itemPath}"?`,
 				'This action cannot be undone.',
 				resolve
